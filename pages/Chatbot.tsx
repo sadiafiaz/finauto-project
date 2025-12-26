@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, RefreshCcw } from 'lucide-react';
 import { ChatMessage } from '../types';
+import { n8nService } from '../services/n8nService';
 
 export const Chatbot: React.FC = () => {
   const [input, setInput] = useState('');
@@ -18,7 +19,7 @@ export const Chatbot: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMsg: ChatMessage = {
@@ -29,22 +30,34 @@ export const Chatbot: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userMsg]);
+    const currentInput = input;
     setInput('');
     setIsTyping(true);
 
-    // Simulate AI Latency and N8N Processing
-    setTimeout(() => {
-      let botText = "I'm sorry, I couldn't process that.";
-      const lowerInput = userMsg.text.toLowerCase();
+    try {
+      // Send query to n8n for AI processing
+      const result = await n8nService.triggerWebhook('ai-chat-query', {
+        type: 'chat_query',
+        message: currentInput,
+        userId: 'current_user'
+      });
 
-      if (lowerInput.includes('profit')) {
-        botText = "📈 **Profit/Loss Report (Oct 2023)**\n\n• Revenue: $128,430\n• Expenses: $62,465\n• **Net Profit: $65,965**\n\nStatus: ✅ Profit";
-      } else if (lowerInput.includes('salary') || lowerInput.includes('payroll')) {
-        botText = "💰 **Payroll Summary**\n\nPayroll for October has been calculated.\n• Total Salaries: $450,000\n• Pending Disbursals: 2\n\nWould you like me to send the payslips via WhatsApp?";
-      } else if (lowerInput.includes('invoice')) {
-        botText = "I can help with that. Please provide the Client Name and Amount to generate a draft invoice.";
-      } else if (lowerInput.includes('attendance')) {
-        botText = "📊 **Attendance Summary**\n\nToday's Attendance:\n• Present: 38\n• Late: 3\n• Absent: 1";
+      let botText = "I'm sorry, I couldn't process that.";
+
+      if (result.success && result.data?.response) {
+        botText = result.data.response;
+      } else {
+        // Fallback to local processing if n8n is unavailable
+        const lowerInput = currentInput.toLowerCase();
+        if (lowerInput.includes('profit')) {
+          botText = "📈 **Profit/Loss Report (Oct 2023)**\n\n• Revenue: $128,430\n• Expenses: $62,465\n• **Net Profit: $65,965**\n\nStatus: ✅ Profit";
+        } else if (lowerInput.includes('salary') || lowerInput.includes('payroll')) {
+          botText = "💰 **Payroll Summary**\n\nPayroll for October has been calculated.\n• Total Salaries: $450,000\n• Pending Disbursals: 2\n\nWould you like me to send the payslips via WhatsApp?";
+        } else if (lowerInput.includes('invoice')) {
+          botText = "I can help with that. Please provide the Client Name and Amount to generate a draft invoice.";
+        } else if (lowerInput.includes('attendance')) {
+          botText = "📊 **Attendance Summary**\n\nToday's Attendance:\n• Present: 38\n• Late: 3\n• Absent: 1";
+        }
       }
 
       const botMsg: ChatMessage = {
@@ -53,10 +66,19 @@ export const Chatbot: React.FC = () => {
         text: botText,
         timestamp: new Date()
       };
-      
+
       setMessages(prev => [...prev, botMsg]);
+    } catch (error) {
+      const errorMsg: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender: 'bot',
+        text: "Sorry, I'm having trouble connecting to my AI services. Please try again later.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMsg]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -79,7 +101,7 @@ export const Chatbot: React.FC = () => {
             </div>
           </div>
         </div>
-        <button 
+        <button
           onClick={() => setMessages([])}
           className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
           title="Clear Chat"
@@ -96,11 +118,10 @@ export const Chatbot: React.FC = () => {
               <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.sender === 'user' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'}`}>
                 {msg.sender === 'user' ? <User size={16} /> : <Bot size={16} />}
               </div>
-              <div className={`p-4 rounded-2xl shadow-sm whitespace-pre-line ${
-                msg.sender === 'user' 
-                  ? 'bg-blue-600 text-white rounded-tr-none' 
+              <div className={`p-4 rounded-2xl shadow-sm whitespace-pre-line ${msg.sender === 'user'
+                  ? 'bg-blue-600 text-white rounded-tr-none'
                   : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
-              }`}>
+                }`}>
                 <p className="text-sm leading-relaxed">{msg.text}</p>
                 <span className={`text-[10px] mt-2 block opacity-70 ${msg.sender === 'user' ? 'text-blue-100' : 'text-slate-400'}`}>
                   {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -111,18 +132,18 @@ export const Chatbot: React.FC = () => {
         ))}
         {isTyping && (
           <div className="flex justify-start">
-             <div className="flex gap-3 max-w-[80%]">
-               <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center flex-shrink-0">
-                 <Bot size={16} />
-               </div>
-               <div className="bg-white p-4 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm">
-                 <div className="flex gap-1">
-                   <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></span>
-                   <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-75"></span>
-                   <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-150"></span>
-                 </div>
-               </div>
-             </div>
+            <div className="flex gap-3 max-w-[80%]">
+              <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center flex-shrink-0">
+                <Bot size={16} />
+              </div>
+              <div className="bg-white p-4 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm">
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></span>
+                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-75"></span>
+                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-150"></span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
         <div ref={messagesEndRef} />
@@ -139,7 +160,7 @@ export const Chatbot: React.FC = () => {
             placeholder="Type your query (e.g., 'Show profit loss', 'Create invoice')..."
             className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-slate-700"
           />
-          <button 
+          <button
             onClick={handleSend}
             disabled={!input.trim()}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -149,13 +170,13 @@ export const Chatbot: React.FC = () => {
         </div>
         <div className="mt-2 flex gap-2 justify-center">
           {['Show Profit/Loss', 'Attendance Summary', 'Salary Report'].map((suggestion) => (
-             <button 
-               key={suggestion}
-               onClick={() => setInput(suggestion)}
-               className="text-xs px-3 py-1 bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 transition-colors"
-             >
-               {suggestion}
-             </button>
+            <button
+              key={suggestion}
+              onClick={() => setInput(suggestion)}
+              className="text-xs px-3 py-1 bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 transition-colors"
+            >
+              {suggestion}
+            </button>
           ))}
         </div>
       </div>

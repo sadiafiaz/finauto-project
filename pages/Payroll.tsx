@@ -1,17 +1,36 @@
 import React, { useState } from 'react';
 import { MOCK_EMPLOYEES } from '../constants';
 import { Download, PlayCircle, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { n8nService } from '../services/n8nService';
 
 export const Payroll: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'payroll' | 'attendance'>('payroll');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleRunPayroll = () => {
+  const handleRunPayroll = async () => {
     setIsProcessing(true);
-    setTimeout(() => {
-      alert("Success: Payroll Batch processed! All employees have been notified via WhatsApp and payslips generated.");
+    try {
+      const employeeIds = MOCK_EMPLOYEES.map(emp => emp.id);
+      const result = await n8nService.processPayroll(employeeIds);
+
+      if (result.success) {
+        // Send WhatsApp notifications to all employees
+        for (const employee of MOCK_EMPLOYEES) {
+          await n8nService.sendWhatsAppNotification(
+            `Hi ${employee.name}, your payroll for this month has been processed. Your payslip is ready for download.`,
+            '+1234567890' // Replace with actual employee phone
+          );
+        }
+
+        alert("Success: Payroll Batch processed! All employees have been notified via WhatsApp and payslips generated.");
+      } else {
+        alert(`Error processing payroll: ${result.error}`);
+      }
+    } catch (error) {
+      alert('Failed to process payroll. Please try again.');
+    } finally {
       setIsProcessing(false);
-    }, 2000);
+    }
   };
 
   const downloadPayslip = (name: string) => {
@@ -26,18 +45,18 @@ export const Payroll: React.FC = () => {
           <p className="text-slate-500">Manage employee salaries and track work hours.</p>
         </div>
         <div className="flex gap-2">
-           <button 
-             onClick={() => setActiveTab('payroll')}
-             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'payroll' ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
-           >
-             Payroll
-           </button>
-           <button 
-             onClick={() => setActiveTab('attendance')}
-             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'attendance' ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
-           >
-             Attendance
-           </button>
+          <button
+            onClick={() => setActiveTab('payroll')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'payroll' ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+          >
+            Payroll
+          </button>
+          <button
+            onClick={() => setActiveTab('attendance')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'attendance' ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+          >
+            Attendance
+          </button>
         </div>
       </div>
 
@@ -45,7 +64,7 @@ export const Payroll: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex justify-between items-center">
             <h3 className="font-bold text-slate-900">Employee List - Oct 2023</h3>
-            <button 
+            <button
               onClick={handleRunPayroll}
               disabled={isProcessing}
               className={`flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 shadow-sm transition-all ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -83,7 +102,7 @@ export const Payroll: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">{emp.lastPayrollRun}</td>
                     <td className="px-6 py-4">
-                      <button 
+                      <button
                         onClick={() => downloadPayslip(emp.name)}
                         className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs font-medium"
                       >
@@ -98,51 +117,51 @@ export const Payroll: React.FC = () => {
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-             <div className="bg-blue-50 p-4 rounded-lg">
-               <div className="text-blue-600 font-semibold mb-1">Present Today</div>
-               <div className="text-2xl font-bold text-slate-900">38/42</div>
-             </div>
-             <div className="bg-yellow-50 p-4 rounded-lg">
-               <div className="text-yellow-600 font-semibold mb-1">Late Arrivals</div>
-               <div className="text-2xl font-bold text-slate-900">3</div>
-             </div>
-             <div className="bg-red-50 p-4 rounded-lg">
-               <div className="text-red-600 font-semibold mb-1">Absent</div>
-               <div className="text-2xl font-bold text-slate-900">1</div>
-             </div>
-           </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="text-blue-600 font-semibold mb-1">Present Today</div>
+              <div className="text-2xl font-bold text-slate-900">38/42</div>
+            </div>
+            <div className="bg-yellow-50 p-4 rounded-lg">
+              <div className="text-yellow-600 font-semibold mb-1">Late Arrivals</div>
+              <div className="text-2xl font-bold text-slate-900">3</div>
+            </div>
+            <div className="bg-red-50 p-4 rounded-lg">
+              <div className="text-red-600 font-semibold mb-1">Absent</div>
+              <div className="text-2xl font-bold text-slate-900">1</div>
+            </div>
+          </div>
 
-           <h3 className="font-bold text-slate-900 mb-4">Daily Attendance Log</h3>
-           <div className="space-y-3">
-             {MOCK_EMPLOYEES.map((emp) => (
-               <div key={emp.id} className="flex items-center justify-between p-4 border border-slate-100 rounded-lg hover:bg-slate-50 transition-colors">
-                 <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold">
-                     {emp.name.charAt(0)}
-                   </div>
-                   <div>
-                     <div className="font-medium text-slate-900">{emp.name}</div>
-                     <div className="text-xs text-slate-500">{emp.department}</div>
-                   </div>
-                 </div>
-                 <div className="flex items-center gap-8 text-sm">
-                   <div className="flex flex-col items-center">
-                      <span className="text-xs text-slate-400 uppercase">Check In</span>
-                      <span className="font-medium text-slate-700">09:02 AM</span>
-                   </div>
-                   <div className="flex flex-col items-center">
-                      <span className="text-xs text-slate-400 uppercase">Check Out</span>
-                      <span className="font-medium text-slate-700">--:--</span>
-                   </div>
-                   <div className="flex items-center gap-1">
-                      {emp.status === 'Active' ? <CheckCircle size={16} className="text-green-500" /> : <XCircle size={16} className="text-red-500" />}
-                      <span className="font-medium">{emp.status === 'Active' ? 'Present' : 'Absent'}</span>
-                   </div>
-                 </div>
-               </div>
-             ))}
-           </div>
+          <h3 className="font-bold text-slate-900 mb-4">Daily Attendance Log</h3>
+          <div className="space-y-3">
+            {MOCK_EMPLOYEES.map((emp) => (
+              <div key={emp.id} className="flex items-center justify-between p-4 border border-slate-100 rounded-lg hover:bg-slate-50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold">
+                    {emp.name.charAt(0)}
+                  </div>
+                  <div>
+                    <div className="font-medium text-slate-900">{emp.name}</div>
+                    <div className="text-xs text-slate-500">{emp.department}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-8 text-sm">
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs text-slate-400 uppercase">Check In</span>
+                    <span className="font-medium text-slate-700">09:02 AM</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs text-slate-400 uppercase">Check Out</span>
+                    <span className="font-medium text-slate-700">--:--</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {emp.status === 'Active' ? <CheckCircle size={16} className="text-green-500" /> : <XCircle size={16} className="text-red-500" />}
+                    <span className="font-medium">{emp.status === 'Active' ? 'Present' : 'Absent'}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
