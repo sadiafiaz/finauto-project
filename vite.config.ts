@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       proxy: {
         '/api/n8n': {
-          target: env.N8N_TARGET_URL || 'https://n8n8.urdupic.online/webhook-test',
+          target: env.N8N_TARGET_URL || 'https://n8n8.localhost.online/webhook-test',
           changeOrigin: true,
           rewrite: (path) => {
             // Transform /api/n8n/invoice-upload -> /invoice-upload
@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => {
           configure: (proxy, options) => {
             proxy.on('proxyReq', (proxyReq, req, res) => {
               const targetPath = req.url.replace(/^\/api\/n8n/, '');
-              const targetUrl = env.N8N_TARGET_URL || 'https://n8n8.urdupic.online/webhook-test';
+              const targetUrl = env.N8N_TARGET_URL || 'https://n8n8.localhost.online/webhook-test';
               console.log('Proxying request to:', `${targetUrl}${targetPath}`);
             });
             proxy.on('proxyRes', (proxyRes, req, res) => {
