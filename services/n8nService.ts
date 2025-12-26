@@ -44,7 +44,7 @@ class N8nService {
     private async makeFileRequest(endpoint: string, file: File, additionalData?: any): Promise<N8nWorkflowResponse> {
         try {
             const formData = new FormData();
-            formData.append('attachments', file);
+            formData.append('attachment_0', file);
 
             if (additionalData) {
                 Object.keys(additionalData).forEach(key => {
@@ -58,7 +58,12 @@ class N8nService {
                 headers['Authorization'] = `Bearer ${this.apiKey}`;
             }
 
-            const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            // Construct URL properly - remove trailing slash from baseUrl if present
+            const baseUrl = this.baseUrl.endsWith('/') ? this.baseUrl.slice(0, -1) : this.baseUrl;
+            const url = `${baseUrl}/${endpoint}`;
+            console.log('Making file request to:', url);
+
+            const response = await fetch(url, {
                 method: 'POST',
                 headers,
                 body: formData,
@@ -131,7 +136,9 @@ class N8nService {
         expectedAmount?: number;
         category?: string;
     }): Promise<N8nWorkflowResponse> {
-        return this.makeFileRequest('invoice-upload', file, {
+        const endpoint = 'invoice-upload';
+        console.log(`Uploading to: ${this.baseUrl}${endpoint}`);
+        return this.makeFileRequest(endpoint, file, {
             type: 'invoice_upload',
             ...metadata
         });
