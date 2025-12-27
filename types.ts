@@ -23,6 +23,19 @@ export interface Employee {
   lastPayrollRun?: string;
 }
 
+export interface GoogleSheetsEmployee {
+  id: string;
+  password: string;
+  fullName: string;
+  pictureUrl: string;
+  designation: string;
+  cnic: string;
+  bloodGroup: string;
+  address: string;
+  emergencyContact: string;
+  status: 'Active' | 'Inactive';
+}
+
 export interface AttendanceRecord {
   id: string;
   employeeId: string;

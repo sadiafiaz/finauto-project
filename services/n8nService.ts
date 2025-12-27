@@ -151,6 +151,15 @@ class N8nService {
             dateRange
         });
     }
+
+    async fetchGoogleSheetsEmployees(spreadsheetId: string = '1PCMArybtF0LRHdMB2neBZsVbX2zgdOIgxQ4lu4CKUuQ'): Promise<N8nWorkflowResponse> {
+        // Use production webhook endpoint
+        return this.triggerWebhook('webhook-test/fetch-google-sheets-employees', {
+            type: 'google_sheets_fetch',
+            spreadsheetId,
+            range: 'Sheet1!A:I' // ID, Password, Full Name, Picture URL, Designation, CNIC, Blood Group, Address, Emergency Contact
+        });
+    }
 }
 
 export const n8nService = new N8nService();

@@ -1,11 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MOCK_EMPLOYEES } from '../constants';
-import { Download, PlayCircle, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { n8nService } from '../services/n8nService';
+import { Download, PlayCircle, Clock, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
+import { n8nService } from '../services/n8nService'; // Keep for payroll processing
+import { GoogleSheetsEmployee } from '../types';
 
 export const Payroll: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'payroll' | 'attendance'>('payroll');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [googleSheetsEmployees, setGoogleSheetsEmployees] = useState<GoogleSheetsEmployee[]>([]);
+  const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
 
   const handleRunPayroll = async () => {
     setIsProcessing(true);
@@ -36,6 +44,157 @@ export const Payroll: React.FC = () => {
   const downloadPayslip = (name: string) => {
     alert(`Downloading PDF Payslip for ${name}...`);
   };
+
+  // Direct Google Sheets API function
+  const fetchDirectGoogleSheetsData = async () => {
+    const spreadsheetId = '1PCMArybtF0LRHdMB2neBZsVbX2zgdOIgxQ4lu4CKUuQ';
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=0`;
+
+    try {
+      console.log('Fetching directly from Google Sheets CSV:', csvUrl);
+
+      const response = await fetch(csvUrl, {
+        mode: 'cors',
+        headers: {
+          'Accept': 'text/csv'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const csvText = await response.text();
+      console.log('Raw CSV data:', csvText.substring(0, 500) + '...');
+
+      // Parse CSV data
+      const lines = csvText.split('\n').filter(line => line.trim());
+
+      if (lines.length <= 1) {
+        throw new Error('No data found in spreadsheet');
+      }
+
+      // Skip header row and parse data
+      const employees: GoogleSheetsEmployee[] = lines.slice(1).map((line, index) => {
+        // Simple CSV parser - handles quoted fields
+        const values: string[] = [];
+        let current = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            values.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+
+        // Add the last value
+        values.push(current.trim());
+
+        // Ensure we have at least 9 columns, pad with empty strings if needed
+        while (values.length < 9) {
+          values.push('');
+        }
+
+        return {
+          id: values[0] || `EMP${(index + 1).toString().padStart(3, '0')}`,
+          password: values[1] || '',
+          fullName: values[2] || `Employee ${index + 1}`,
+          pictureUrl: values[3] || '',
+          designation: values[4] || 'Unknown',
+          cnic: values[5] || '',
+          bloodGroup: values[6] || '',
+          address: values[7] || '',
+          emergencyContact: values[8] || '',
+          status: 'Active' as const
+        };
+      });
+
+      console.log(`Successfully parsed ${employees.length} employees from Google Sheets`);
+      return employees;
+
+    } catch (error) {
+      console.error('Error fetching from Google Sheets:', error);
+      throw error;
+    }
+  };
+
+  const fetchGoogleSheetsData = async () => {
+    setIsLoadingEmployees(true);
+    try {
+      console.log('Fetching Google Sheets data directly...');
+      const employees = await fetchDirectGoogleSheetsData();
+
+      setGoogleSheetsEmployees(employees);
+      setTotalRecords(employees.length);
+      setCurrentPage(1); // Reset to first page
+
+      console.log(`Loaded ${employees.length} employees successfully`);
+
+    } catch (error) {
+      console.error('Error fetching Google Sheets data:', error);
+      alert(`Failed to fetch data from Google Sheets: ${error}. Using demo data.`);
+
+      // Generate demo data for fallback
+      const demoEmployees = Array.from({ length: 50 }, (_, i) => ({
+        id: `EMP${(i + 1).toString().padStart(3, '0')}`,
+        password: `temp${i + 1}`,
+        fullName: `Employee ${i + 1}`,
+        pictureUrl: '',
+        designation: ['Software Engineer', 'HR Manager', 'Sales Executive', 'Marketing Specialist', 'Finance Analyst'][i % 5],
+        cnic: `12345-${(1234567 + i).toString()}-${(i % 9) + 1}`,
+        bloodGroup: ['O+', 'A+', 'B+', 'AB+', 'O-'][i % 5],
+        address: `Address ${i + 1}, Street ${i + 1}, City`,
+        emergencyContact: `+92-30${i % 10}-${String(Math.floor(Math.random() * 9000000) + 1000000)}`,
+        status: 'Active' as const
+      }));
+
+      setGoogleSheetsEmployees(demoEmployees);
+      setTotalRecords(demoEmployees.length);
+      setCurrentPage(1);
+    } finally {
+      setIsLoadingEmployees(false);
+    }
+  };
+
+  const openEmployeeDetails = (id: string) => {
+    // This will be implemented in the next step
+    alert(`Opening details for employee: ${id}`);
+  };
+
+  // Pagination helpers
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentEmployees = googleSheetsEmployees.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(totalRecords / recordsPerPage);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'attendance') {
+      fetchGoogleSheetsData();
+    }
+  }, [activeTab]);
 
   return (
     <div className="space-y-6">
@@ -132,36 +291,133 @@ export const Payroll: React.FC = () => {
             </div>
           </div>
 
-          <h3 className="font-bold text-slate-900 mb-4">Daily Attendance Log</h3>
-          <div className="space-y-3">
-            {MOCK_EMPLOYEES.map((emp) => (
-              <div key={emp.id} className="flex items-center justify-between p-4 border border-slate-100 rounded-lg hover:bg-slate-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold">
-                    {emp.name.charAt(0)}
-                  </div>
-                  <div>
-                    <div className="font-medium text-slate-900">{emp.name}</div>
-                    <div className="text-xs text-slate-500">{emp.department}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-8 text-sm">
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs text-slate-400 uppercase">Check In</span>
-                    <span className="font-medium text-slate-700">09:02 AM</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs text-slate-400 uppercase">Check Out</span>
-                    <span className="font-medium text-slate-700">--:--</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {emp.status === 'Active' ? <CheckCircle size={16} className="text-green-500" /> : <XCircle size={16} className="text-red-500" />}
-                    <span className="font-medium">{emp.status === 'Active' ? 'Present' : 'Absent'}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="font-bold text-slate-900">Daily Attendance Log</h3>
+              {totalRecords > 0 && (
+                <p className="text-sm text-slate-600 mt-1">
+                  Showing {indexOfFirstRecord + 1}-{Math.min(indexOfLastRecord, totalRecords)} of {totalRecords} employees
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={fetchGoogleSheetsData}
+                disabled={isLoadingEmployees}
+                className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isLoadingEmployees ? 'Loading...' : 'Refresh Data'}
+              </button>
+            </div>
           </div>
+          <div className="space-y-3">
+            {isLoadingEmployees ? (
+              <div className="text-center py-8 text-slate-500">Loading employee data...</div>
+            ) : currentEmployees.length === 0 ? (
+              <div className="text-center py-8 text-slate-500">No employee data available</div>
+            ) : (
+              currentEmployees.map((emp) => (
+                <div key={emp.id} className="flex items-center justify-between p-4 border border-slate-100 rounded-lg hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    {emp.pictureUrl ? (
+                      <img
+                        src={emp.pictureUrl}
+                        alt={emp.fullName}
+                        className="w-10 h-10 rounded-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold ${emp.pictureUrl ? 'hidden' : ''}`}>
+                      {emp.fullName.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="font-medium text-slate-900">{emp.fullName}</div>
+                      <div className="text-xs text-slate-500">{emp.id} • {emp.designation}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-8 text-sm">
+                    <div className="flex flex-col items-center max-w-32">
+                      <span className="text-xs text-slate-400 uppercase">Address</span>
+                      <span className="font-medium text-slate-700 text-center text-xs">{emp.address}</span>
+                    </div>
+                    <div className="flex flex-col items-center max-w-32">
+                      <span className="text-xs text-slate-400 uppercase">Emergency Contact</span>
+                      <span className="font-medium text-slate-700 text-center text-xs">{emp.emergencyContact}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {emp.status === 'Active' ? <CheckCircle size={16} className="text-green-500" /> : <XCircle size={16} className="text-red-500" />}
+                      <span className="font-medium">{emp.status}</span>
+                    </div>
+                    <button
+                      onClick={() => openEmployeeDetails(emp.id)}
+                      className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs transition-colors"
+                    >
+                      <ExternalLink size={14} />
+                      Details
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalRecords > recordsPerPage && (
+            <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-200">
+              <div className="text-sm text-slate-600">
+                Page {currentPage} of {totalPages}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={goToPreviousPage}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+
+                {/* Page numbers */}
+                <div className="flex gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => goToPage(pageNum)}
+                        className={`px-3 py-1 text-sm rounded-lg ${currentPage === pageNum
+                          ? 'bg-blue-600 text-white'
+                          : 'border border-slate-300 hover:bg-slate-50'
+                          }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
