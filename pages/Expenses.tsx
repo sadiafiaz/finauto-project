@@ -38,6 +38,8 @@ export const Expenses: React.FC = () => {
         // Extract expense details from n8n response
         const extractedData = result.data;
 
+        //TODO: Update based on actual response structure
+        console.log('N8n Expense Analysis Result:', extractedData);
         const newExpense: Expense = {
           id: `EXP-${Date.now()}`,
           vendor: extractedData.vendor || 'AI Extracted Vendor',
