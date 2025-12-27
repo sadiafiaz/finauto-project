@@ -6,9 +6,10 @@ import { n8nService } from '../services/n8nService';
 export const Chatbot: React.FC = () => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: '1', sender: 'bot', text: 'Hello! I am your AI Finance Assistant. You can ask me about profit/loss, invoice creation, or salary reports.', timestamp: new Date() }
+    { id: '1', sender: 'bot', text: 'Hello! I am your AI Finance Assistant. You can ask me about profit/loss, invoice creation, salary reports, attendance, or any finance-related queries.', timestamp: new Date() }
   ]);
   const [isTyping, setIsTyping] = useState(false);
+  const [sessionId] = useState(() => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -35,26 +36,22 @@ export const Chatbot: React.FC = () => {
     setIsTyping(true);
 
     try {
-      // Send query to n8n for AI processing
-      const result = await n8nService.triggerWebhook('ai-chat-query', {
-        type: 'chat_query',
-        message: currentInput,
-        userId: 'current_user'
-      });
+      // Send message to n8n chatbot endpoint
+      const result = await n8nService.sendChatMessage(currentInput, sessionId);
 
-      let botText = "I'm sorry, I couldn't process that.";
+      let botText = "I'm sorry, I couldn't process that request. Please try again.";
 
-      if (result.success && result.data?.response) {
-        botText = result.data.response;
+      if (result.success && result.data?.reply) {
+        botText = result.data.reply;
       } else {
         // Fallback to local processing if n8n is unavailable
         const lowerInput = currentInput.toLowerCase();
         if (lowerInput.includes('profit')) {
-          botText = "📈 **Profit/Loss Report (Oct 2023)**\n\n• Revenue: $128,430\n• Expenses: $62,465\n• **Net Profit: $65,965**\n\nStatus: ✅ Profit";
+          botText = "📈 **Profit/Loss Report (Dec 2025)**\n\n• Revenue: $128,430\n• Expenses: $62,465\n• **Net Profit: $65,965**\n\nStatus: ✅ Profit";
         } else if (lowerInput.includes('salary') || lowerInput.includes('payroll')) {
-          botText = "💰 **Payroll Summary**\n\nPayroll for October has been calculated.\n• Total Salaries: $450,000\n• Pending Disbursals: 2\n\nWould you like me to send the payslips via WhatsApp?";
+          botText = "💰 **Payroll Summary**\n\nPayroll for December has been calculated.\n• Total Salaries: $450,000\n• Pending Disbursals: 2\n\nWould you like me to send the payslips via WhatsApp?";
         } else if (lowerInput.includes('invoice')) {
-          botText = "I can help with that. Please provide the Client Name and Amount to generate a draft invoice.";
+          botText = "📄 I can help with that. Please provide the Client Name and Amount to generate a draft invoice.";
         } else if (lowerInput.includes('attendance')) {
           botText = "📊 **Attendance Summary**\n\nToday's Attendance:\n• Present: 38\n• Late: 3\n• Absent: 1";
         }
@@ -102,7 +99,14 @@ export const Chatbot: React.FC = () => {
           </div>
         </div>
         <button
-          onClick={() => setMessages([])}
+          onClick={() => {
+            setMessages([{
+              id: '1',
+              sender: 'bot',
+              text: 'Hello! I am your AI Finance Assistant. You can ask me about profit/loss, invoice creation, salary reports, attendance, or any finance-related queries.',
+              timestamp: new Date()
+            }]);
+          }}
           className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
           title="Clear Chat"
         >
@@ -119,8 +123,8 @@ export const Chatbot: React.FC = () => {
                 {msg.sender === 'user' ? <User size={16} /> : <Bot size={16} />}
               </div>
               <div className={`p-4 rounded-2xl shadow-sm whitespace-pre-line ${msg.sender === 'user'
-                  ? 'bg-blue-600 text-white rounded-tr-none'
-                  : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
+                ? 'bg-blue-600 text-white rounded-tr-none'
+                : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
                 }`}>
                 <p className="text-sm leading-relaxed">{msg.text}</p>
                 <span className={`text-[10px] mt-2 block opacity-70 ${msg.sender === 'user' ? 'text-blue-100' : 'text-slate-400'}`}>
@@ -168,8 +172,8 @@ export const Chatbot: React.FC = () => {
             <Send size={18} />
           </button>
         </div>
-        <div className="mt-2 flex gap-2 justify-center">
-          {['Show Profit/Loss', 'Attendance Summary', 'Salary Report'].map((suggestion) => (
+        <div className="mt-2 flex gap-2 justify-center flex-wrap">
+          {['Salary report for Imran Saleem', 'Show Profit/Loss', 'Attendance Summary', 'Create Invoice'].map((suggestion) => (
             <button
               key={suggestion}
               onClick={() => setInput(suggestion)}

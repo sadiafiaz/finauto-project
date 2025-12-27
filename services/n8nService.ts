@@ -168,6 +168,31 @@ class N8nService {
         });
     }
 
+    async sendChatMessage(message: string, sessionId: string): Promise<N8nWorkflowResponse> {
+        try {
+            const response = await fetch('https://orvixx7.app.n8n.cloud/webhook-test/a705413d-cafc-4a1e-8061-8be8fe7d2eeb', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message,
+                    sessionid: sessionId
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return { success: true, data: result };
+        } catch (error) {
+            console.error('N8n Chat API Error:', error);
+            return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+        }
+    }
+
     async fetchGoogleSheetsEmployees(spreadsheetId: string = process.env.GOOGLE_SHEETS_ID || ''): Promise<N8nWorkflowResponse> {
         // Use the correct endpoint name
         return this.triggerWebhook('fetch-google-sheets-employees', {
