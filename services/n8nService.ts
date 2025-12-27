@@ -193,6 +193,30 @@ class N8nService {
         }
     }
 
+    async trackOrder(orderId: string): Promise<N8nWorkflowResponse> {
+        try {
+            const response = await fetch('https://orvixx7.app.n8n.cloud/webhook-test/b22ff955-9b1c-44ea-ad1d-3d892a20f5dc', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    order_id: orderId
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return { success: true, data: result };
+        } catch (error) {
+            console.error('N8n Tracking API Error:', error);
+            return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+        }
+    }
+
     async fetchGoogleSheetsEmployees(spreadsheetId: string = process.env.GOOGLE_SHEETS_ID || ''): Promise<N8nWorkflowResponse> {
         // Use the correct endpoint name
         return this.triggerWebhook('fetch-google-sheets-employees', {

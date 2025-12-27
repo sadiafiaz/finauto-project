@@ -1,88 +1,165 @@
 import React, { useState } from 'react';
-import { Truck, MapPin, Package, CheckCircle } from 'lucide-react';
+import { Truck, MapPin, Package, CheckCircle, Loader2 } from 'lucide-react';
+import { n8nService } from '../services/n8nService';
 
 export const Tracking: React.FC = () => {
-  const [trackingId, setTrackingId] = useState('');
+  const [orderId, setOrderId] = useState('');
   const [status, setStatus] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleTrack = () => {
-    // Mock Tracking Logic
-    if (trackingId) {
-      setStatus({
-        id: trackingId,
-        status: 'In Transit',
-        location: 'Distribution Center, NY',
-        estimatedDelivery: 'Tomorrow, by 8 PM',
-        history: [
-           { time: '10:00 AM', event: 'Out for Delivery' },
-           { time: '06:30 AM', event: 'Arrived at Facility' },
-           { time: 'Yesterday', event: 'Shipped from Warehouse' }
-        ]
-      });
-    } else {
-      alert('Please enter a valid Tracking ID');
+  const handleTrack = async () => {
+    if (!orderId.trim()) {
+      setError('Please enter a valid Order ID');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setStatus(null);
+
+    try {
+      // Send request to n8n tracking endpoint
+      const result = await n8nService.trackOrder(orderId);
+
+      if (result.success && result.data?.reply) {
+        // Parse the reply to extract information
+        const reply = result.data.reply;
+
+        // Extract key information from the reply text
+        const orderIdMatch = reply.match(/Order ID: ([^\n]+)/);
+        const amountMatch = reply.match(/Amount PKR: ([^\n]+)/);
+        const trackingMatch = reply.match(/Tracking Number: ([^\n]+)/);
+        const courierMatch = reply.match(/Courier: ([^\n]+)/);
+        const linkMatch = reply.match(/(https:\/\/[^\s]+)/);
+        const nameMatch = reply.match(/Dear ([^,]+),/);
+
+        setStatus({
+          orderId: orderIdMatch?.[1] || orderId,
+          customerName: nameMatch?.[1] || 'Customer',
+          amount: amountMatch?.[1] || 'N/A',
+          trackingNumber: trackingMatch?.[1] || 'N/A',
+          courier: courierMatch?.[1] || 'N/A',
+          trackingLink: linkMatch?.[1] || '',
+          fullReply: reply,
+          status: reply.toLowerCase().includes('shipped') ? 'Shipped' :
+            reply.toLowerCase().includes('in_transit') ? 'In Transit' :
+              reply.toLowerCase().includes('delivered') ? 'Delivered' : 'Processing'
+        });
+      } else {
+        setError('Order not found or invalid Order ID');
+      }
+    } catch (error) {
+      setError('Failed to track order. Please try again.');
+      console.error('Tracking error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const sendWhatsAppUpdate = () => {
-    alert(`Success: Delivery update for package ${trackingId} has been sent to the customer via WhatsApp.`);
+  const sendWhatsAppUpdate = async () => {
+    if (!status) return;
+
+    try {
+      // Send WhatsApp notification using existing n8n service
+      await n8nService.sendWhatsAppNotification(
+        status.fullReply,
+        '+923001234567' // Replace with actual customer phone
+      );
+      alert(`Success: Delivery update for order ${status.orderId} has been sent to ${status.customerName} via WhatsApp.`);
+    } catch (error) {
+      alert('Failed to send WhatsApp update. Please try again.');
+    }
   };
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-slate-900">Delivery Tracking</h1>
-        <p className="text-slate-500 mt-2">Track client shipments and automate WhatsApp updates.</p>
+        <h1 className="text-2xl font-bold text-slate-900">Order Tracking</h1>
+        <p className="text-slate-500 mt-2">Track customer orders and automate delivery updates via WhatsApp.</p>
       </div>
 
       <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-100">
         <div className="flex gap-4 mb-8">
-          <input 
-            type="text" 
-            placeholder="Enter Tracking ID (e.g., TRK-9988)" 
-            value={trackingId}
-            onChange={(e) => setTrackingId(e.target.value)}
+          <input
+            type="text"
+            placeholder="Enter Order ID (e.g., OR1006)"
+            value={orderId}
+            onChange={(e) => {
+              setOrderId(e.target.value);
+              setError(null);
+            }}
             className="flex-1 p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
-          <button 
+          <button
             onClick={handleTrack}
-            className="px-6 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            disabled={isLoading}
+            className="px-6 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
           >
-            <Truck size={18} /> Track Package
+            {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Truck size={18} />}
+            {isLoading ? 'Tracking...' : 'Track Order'}
           </button>
         </div>
 
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
+
         {status && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-             <div className="border-l-4 border-blue-500 pl-4 mb-6">
-                <h3 className="text-xl font-bold text-slate-900">{status.status}</h3>
-                <p className="text-slate-500">Est. Delivery: {status.estimatedDelivery}</p>
-             </div>
+            <div className="border-l-4 border-blue-500 pl-4 mb-6">
+              <h3 className="text-xl font-bold text-slate-900">{status.status}</h3>
+              <p className="text-slate-500">Customer: {status.customerName}</p>
+              <p className="text-slate-600">Order ID: {status.orderId}</p>
+            </div>
 
-             <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
-                {status.history.map((item: any, idx: number) => (
-                  <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-300 group-[.is-active]:bg-blue-500 text-slate-500 group-[.is-active]:text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
-                       <Package size={16} />
-                    </div>
-                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded border border-slate-200 shadow-sm">
-                       <div className="flex items-center justify-between space-x-2 mb-1">
-                          <div className="font-bold text-slate-900">{item.event}</div>
-                          <time className="font-caveat font-medium text-indigo-500 text-xs">{item.time}</time>
-                       </div>
-                    </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-slate-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-slate-900 mb-2">Order Details</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Amount:</span>
+                    <span className="font-medium">PKR {status.amount}</span>
                   </div>
-                ))}
-             </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Tracking Number:</span>
+                    <span className="font-medium">{status.trackingNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Courier:</span>
+                    <span className="font-medium">{status.courier}</span>
+                  </div>
+                </div>
+              </div>
 
-             <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end">
-                <button 
-                  onClick={sendWhatsAppUpdate}
-                  className="text-green-600 text-sm font-medium flex items-center gap-2 hover:bg-green-50 px-3 py-1 rounded-lg transition-colors"
-                >
-                   <CheckCircle size={16} /> Send Update via WhatsApp
-                </button>
-             </div>
+              <div className="bg-slate-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-slate-900 mb-2">Tracking Information</h4>
+                <div className="space-y-2 text-sm">
+                  <p className="text-slate-700">{status.fullReply.split('\n\n')[1] || 'Your order has been processed.'}</p>
+                  {status.trackingLink && (
+                    <a
+                      href={status.trackingLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline block"
+                    >
+                      Track on Courier Website →
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={sendWhatsAppUpdate}
+                className="text-green-600 text-sm font-medium flex items-center gap-2 hover:bg-green-50 px-3 py-1 rounded-lg transition-colors"
+              >
+                <CheckCircle size={16} /> Send Update via WhatsApp
+              </button>
+            </div>
           </div>
         )}
       </div>
