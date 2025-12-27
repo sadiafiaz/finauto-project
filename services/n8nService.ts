@@ -153,7 +153,7 @@ class N8nService {
         });
     }
 
-    async fetchGoogleSheetsEmployees(spreadsheetId: string = '1PCMArybtF0LRHdMB2neBZsVbX2zgdOIgxQ4lu4CKUuQ'): Promise<N8nWorkflowResponse> {
+    async fetchGoogleSheetsEmployees(spreadsheetId: string = process.env.GOOGLE_SHEETS_ID || ''): Promise<N8nWorkflowResponse> {
         // Use the correct endpoint name
         return this.triggerWebhook('fetch-google-sheets-employees', {
             type: 'google_sheets_fetch',
@@ -163,7 +163,7 @@ class N8nService {
     }
 
     async fetchEmployeeAttendance(id: string, password: string): Promise<N8nWorkflowResponse> {
-        return this.triggerWebhook('fetch-employee-attendance', {
+        return this.triggerWebhook('a2b38bc9-fe57-4b0b-8a3a-1880e4214a7b', {
             id,
             password
         });

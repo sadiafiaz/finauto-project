@@ -49,25 +49,45 @@ export const Payroll: React.FC = () => {
 
   // Direct Google Sheets API function
   const fetchDirectGoogleSheetsData = async () => {
-    const spreadsheetId = '1PCMArybtF0LRHdMB2neBZsVbX2zgdOIgxQ4lu4CKUuQ';
+    // In browser environment, use VITE_ prefix for client-side access
+    const spreadsheetId = import.meta.env.VITE_GOOGLE_SHEETS_ID || '1PCMArybtF0LRHdMB2neBZsVbX2zgdOIgxQ4lu4CKUuQ';
+    console.log('Using Google Sheets ID:', spreadsheetId);
+
+    if (!spreadsheetId) {
+      throw new Error('Google Sheets ID not configured');
+    }
+
     const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=0`;
 
     try {
       console.log('Fetching directly from Google Sheets CSV:', csvUrl);
 
       const response = await fetch(csvUrl, {
-        mode: 'cors',
+        method: 'GET',
         headers: {
-          'Accept': 'text/csv'
-        }
+          'Accept': 'text/csv, application/csv, */*'
+        },
+        // Remove mode: 'cors' to use default handling
       });
 
+      console.log('Response status:', response.status, response.statusText);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (response.status === 403) {
+          throw new Error('Google Sheet access denied. Please ensure the sheet is publicly viewable.');
+        } else if (response.status === 404) {
+          throw new Error('Google Sheet not found. Please check the sheet ID.');
+        }
+        throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
       }
 
       const csvText = await response.text();
-      console.log('Raw CSV data:', csvText.substring(0, 500) + '...');
+      console.log('CSV response length:', csvText.length);
+      console.log('Raw CSV data sample:', csvText.substring(0, 200) + '...');
+
+      if (!csvText || csvText.trim().length === 0) {
+        throw new Error('Empty response from Google Sheets');
+      }
 
       // Parse CSV data
       const lines = csvText.split('\n').filter(line => line.trim());
