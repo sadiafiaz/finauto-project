@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MOCK_EMPLOYEES } from '../constants';
 import { Download, PlayCircle, Clock, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
 import { n8nService } from '../services/n8nService'; // Keep for payroll processing
 import { GoogleSheetsEmployee } from '../types';
 
 export const Payroll: React.FC = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'payroll' | 'attendance'>('payroll');
   const [isProcessing, setIsProcessing] = useState(false);
   const [googleSheetsEmployees, setGoogleSheetsEmployees] = useState<GoogleSheetsEmployee[]>([]);
@@ -163,9 +165,28 @@ export const Payroll: React.FC = () => {
     }
   };
 
-  const openEmployeeDetails = (id: string) => {
-    // This will be implemented in the next step
-    alert(`Opening details for employee: ${id}`);
+  const openEmployeeDetails = (employeeId: string) => {
+    // Find the employee data
+    const employee = googleSheetsEmployees.find(emp => emp.id === employeeId);
+
+    if (employee) {
+      // Navigate to attendance details page with employee data as URL params
+      const params = new URLSearchParams({
+        id: employee.id,
+        password: employee.password,
+        fullName: employee.fullName,
+        pictureUrl: employee.pictureUrl,
+        designation: employee.designation,
+        cnic: employee.cnic,
+        bloodGroup: employee.bloodGroup,
+        address: employee.address,
+        emergencyContact: employee.emergencyContact
+      });
+
+      navigate(`/attendance-details?${params.toString()}`);
+    } else {
+      alert(`Employee data not found for ID: ${employeeId}`);
+    }
   };
 
   // Pagination helpers
@@ -276,24 +297,11 @@ export const Payroll: React.FC = () => {
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="text-blue-600 font-semibold mb-1">Present Today</div>
-              <div className="text-2xl font-bold text-slate-900">38/42</div>
-            </div>
-            <div className="bg-yellow-50 p-4 rounded-lg">
-              <div className="text-yellow-600 font-semibold mb-1">Late Arrivals</div>
-              <div className="text-2xl font-bold text-slate-900">3</div>
-            </div>
-            <div className="bg-red-50 p-4 rounded-lg">
-              <div className="text-red-600 font-semibold mb-1">Absent</div>
-              <div className="text-2xl font-bold text-slate-900">1</div>
-            </div>
-          </div>
+
 
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-bold text-slate-900">Daily Attendance Log</h3>
+              <h3 className="font-bold text-slate-900">Attendance</h3>
               {totalRecords > 0 && (
                 <p className="text-sm text-slate-600 mt-1">
                   Showing {indexOfFirstRecord + 1}-{Math.min(indexOfLastRecord, totalRecords)} of {totalRecords} employees

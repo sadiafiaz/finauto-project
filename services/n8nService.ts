@@ -83,7 +83,8 @@ class N8nService {
 
     // Trigger webhook workflows
     async triggerWebhook(webhookId: string, data: any): Promise<N8nWorkflowResponse> {
-        return this.makeRequest(`/webhook/${webhookId}`, 'POST', data);
+        // Don't add /webhook/ prefix since base URL already includes webhook-test
+        return this.makeRequest(`/${webhookId}`, 'POST', data);
     }
 
     // Execute workflows by ID
@@ -153,11 +154,18 @@ class N8nService {
     }
 
     async fetchGoogleSheetsEmployees(spreadsheetId: string = '1PCMArybtF0LRHdMB2neBZsVbX2zgdOIgxQ4lu4CKUuQ'): Promise<N8nWorkflowResponse> {
-        // Use production webhook endpoint
-        return this.triggerWebhook('webhook-test/fetch-google-sheets-employees', {
+        // Use the correct endpoint name
+        return this.triggerWebhook('fetch-google-sheets-employees', {
             type: 'google_sheets_fetch',
             spreadsheetId,
             range: 'Sheet1!A:I' // ID, Password, Full Name, Picture URL, Designation, CNIC, Blood Group, Address, Emergency Contact
+        });
+    }
+
+    async fetchEmployeeAttendance(id: string, password: string): Promise<N8nWorkflowResponse> {
+        return this.triggerWebhook('fetch-employee-attendance', {
+            id,
+            password
         });
     }
 }

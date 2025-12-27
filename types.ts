@@ -36,6 +36,25 @@ export interface GoogleSheetsEmployee {
   status: 'Active' | 'Inactive';
 }
 
+export interface AttendanceSummary {
+  P: number; // Present
+  A: number; // Absent
+  L: number; // Late
+}
+
+export interface AttendanceCalendarEntry {
+  date: string;
+  status: 'P' | 'A' | 'L';
+}
+
+export interface AttendanceDetails {
+  success: boolean;
+  attendance: {
+    summary: AttendanceSummary;
+    calendar: AttendanceCalendarEntry[];
+  };
+}
+
 export interface AttendanceRecord {
   id: string;
   employeeId: string;
