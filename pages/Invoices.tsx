@@ -7,54 +7,101 @@ import { n8nService } from '../services/n8nService';
 export const Invoices: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'sales' | 'purchase'>('sales');
   const [invoices, setInvoices] = useState<Invoice[]>(MOCK_INVOICES);
-  const [form, setForm] = useState({ clientName: '', date: '', amount: '' });
+  const [form, setForm] = useState({
+    clientName: '',
+    customerEmail: '',
+    customerPhone: '',
+    tax: 5,
+    paymentTerms: 'Net 15'
+  });
+  const [items, setItems] = useState([{ name: '', quantity: 1, price: 0 }]);
   const [isLoading, setIsLoading] = useState(false);
   const purchaseFileRef = useRef<HTMLInputElement>(null);
 
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.clientName || !form.amount) return alert('Please fill in all details');
+
+    // Validation
+    if (!form.clientName || !form.customerEmail || !form.customerPhone) {
+      return alert('Please fill in client name, email, and phone number');
+    }
+
+    const validItems = items.filter(item => item.name && item.quantity > 0 && item.price > 0);
+    if (validItems.length === 0) {
+      return alert('Please add at least one valid item');
+    }
 
     setIsLoading(true);
     try {
-      // Trigger n8n workflow for invoice generation
-      const result = await n8nService.generateInvoice({
-        clientName: form.clientName,
-        amount: parseFloat(form.amount),
-        date: form.date || new Date().toISOString().split('T')[0]
+      // Calculate total amount
+      const subtotal = validItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+      const taxAmount = subtotal * (form.tax / 100);
+      const totalAmount = subtotal + taxAmount;
+
+      // Trigger n8n workflow for sales order
+      const result = await n8nService.createSalesOrder({
+        customerName: form.clientName,
+        customerEmail: form.customerEmail,
+        customerPhone: form.customerPhone,
+        items: validItems,
+        tax: form.tax,
+        paymentTerms: form.paymentTerms
       });
 
       if (result.success) {
-        console.log('N8n Invoice Generation Result:', result.data);
+        console.log('N8n Sales Order Result:', result.data);
         const newInv: Invoice = {
           id: `INV-${Date.now()}`,
           number: `INV-${1000 + invoices.length + 1}`,
           clientName: form.clientName,
-          amount: parseFloat(form.amount),
-          date: form.date || new Date().toISOString().split('T')[0],
-          dueDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+          amount: totalAmount,
+          date: new Date().toISOString().split('T')[0],
+          dueDate: new Date(Date.now() + parseInt(form.paymentTerms.replace('Net ', '')) * 86400000).toISOString().split('T')[0],
           status: Status.PENDING,
           type: 'Sales'
         };
 
         setInvoices([newInv, ...invoices]);
-        setForm({ clientName: '', date: '', amount: '' });
+        setForm({
+          clientName: '',
+          customerEmail: '',
+          customerPhone: '',
+          tax: 5,
+          paymentTerms: 'Net 15'
+        });
+        setItems([{ name: '', quantity: 1, price: 0 }]);
 
         // Send WhatsApp notification via n8n
         await n8nService.sendWhatsAppNotification(
-          `Invoice ${newInv.number} for $${newInv.amount} has been generated and sent to you.`,
-          '+1234567890' // Replace with actual client phone
+          `Invoice ${newInv.number} for $${totalAmount.toFixed(2)} has been generated and sent to you.`,
+          form.customerPhone
         );
 
-        alert(`Success: Invoice ${newInv.number} generated and sent to ${newInv.clientName} via WhatsApp.`);
+        //alert(`Success: Sales order ${newInv.number} created and sent to ${form.clientName} via WhatsApp.`);
       } else {
         alert(`Error: ${result.error}`);
       }
     } catch (error) {
-      alert('Failed to create invoice. Please try again.');
+      alert('Failed to create sales order. Please try again.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const addItem = () => {
+    setItems([...items, { name: '', quantity: 1, price: 0 }]);
+  };
+
+  const removeItem = (index: number) => {
+    if (items.length > 1) {
+      setItems(items.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateItem = (index: number, field: string, value: any) => {
+    const updatedItems = [...items];
+    updatedItems[index] = { ...updatedItems[index], [field]: value };
+    setItems(updatedItems);
   };
 
   const handlePurchaseUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,34 +151,156 @@ export const Invoices: React.FC = () => {
       {activeTab === 'sales' ? (
         <div className="space-y-6">
           <form onSubmit={handleCreateInvoice} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-            <h3 className="font-bold text-slate-900 mb-4">Create New Invoice</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <input
-                type="text"
-                placeholder="Client Name"
-                value={form.clientName}
-                onChange={e => setForm({ ...form, clientName: e.target.value })}
-                className="p-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
-              <input
-                type="date"
-                value={form.date}
-                onChange={e => setForm({ ...form, date: e.target.value })}
-                className="p-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
-              <input
-                type="number"
-                placeholder="Total Amount"
-                value={form.amount}
-                onChange={e => setForm({ ...form, amount: e.target.value })}
-                className="p-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
+            <h3 className="font-bold text-slate-900 mb-4">Create New Sales Order</h3>
+
+            {/* Customer Information */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Client Name</label>
+                <input
+                  type="text"
+                  value={form.clientName}
+                  onChange={e => setForm({ ...form, clientName: e.target.value })}
+                  className="p-3 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-full"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Customer Email</label>
+                <input
+                  type="email"
+                  value={form.customerEmail}
+                  onChange={e => setForm({ ...form, customerEmail: e.target.value })}
+                  className="p-3 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-full"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Customer Phone</label>
+                <input
+                  type="tel"
+                  value={form.customerPhone}
+                  onChange={e => setForm({ ...form, customerPhone: e.target.value })}
+                  className="p-3 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-full"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Items Section */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-semibold text-slate-900">Items</h4>
+                <button
+                  type="button"
+                  onClick={addItem}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1"
+                >
+                  <FilePlus size={16} /> Add Item
+                </button>
+              </div>
+
+              {/* Item Headers */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3 px-3">
+                <label className="text-sm font-medium text-slate-700">Item Name</label>
+                <label className="text-sm font-medium text-slate-700">Quantity</label>
+                <label className="text-sm font-medium text-slate-700">Price</label>
+                <label className="text-sm font-medium text-slate-700">Total</label>
+              </div>
+
+              {items.map((item, index) => (
+                <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3 p-3 bg-slate-50 rounded-lg">
+                  <input
+                    type="text"
+                    value={item.name}
+                    onChange={e => updateItem(index, 'name', e.target.value)}
+                    className="p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                  <input
+                    type="number"
+                    value={item.quantity}
+                    onChange={e => updateItem(index, 'quantity', parseInt(e.target.value) || 0)}
+                    min="1"
+                    className="p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                  <input
+                    type="number"
+                    value={item.price}
+                    onChange={e => updateItem(index, 'price', parseFloat(e.target.value) || 0)}
+                    min="0"
+                    step="0.01"
+                    className="p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-700">
+                      ${(item.quantity * item.price).toFixed(2)}
+                    </span>
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeItem(index)}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Order Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Tax Percentage</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={form.tax}
+                    onChange={e => setForm({ ...form, tax: parseFloat(e.target.value) || 0 })}
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    className="p-3 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-full"
+                  />
+                  <span className="absolute right-3 top-3 text-slate-500 text-sm">%</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Payment Terms</label>
+                <select
+                  value={form.paymentTerms}
+                  onChange={e => setForm({ ...form, paymentTerms: e.target.value })}
+                  className="p-3 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-full"
+                >
+                  <option value="Net 15">Net 15 Days</option>
+                  <option value="Net 30">Net 30 Days</option>
+                  <option value="Net 45">Net 45 Days</option>
+                  <option value="Net 60">Net 60 Days</option>
+                  <option value="COD">Cash on Delivery</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Total and Submit */}
+            <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+              <div className="text-right">
+                <div className="text-sm text-slate-600">
+                  Subtotal: ${items.reduce((sum, item) => sum + (item.quantity * item.price), 0).toFixed(2)}
+                </div>
+                <div className="text-sm text-slate-600">
+                  Tax ({form.tax}%): ${(items.reduce((sum, item) => sum + (item.quantity * item.price), 0) * form.tax / 100).toFixed(2)}
+                </div>
+                <div className="text-lg font-bold text-slate-900">
+                  Total: ${(items.reduce((sum, item) => sum + (item.quantity * item.price), 0) * (1 + form.tax / 100)).toFixed(2)}
+                </div>
+              </div>
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700 flex items-center justify-center gap-2 transition-all ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`bg-blue-600 text-white rounded-lg font-medium text-sm px-6 py-3 hover:bg-blue-700 flex items-center gap-2 transition-all ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <Send size={16} /> {isLoading ? 'Processing...' : 'Generate & Send'}
+                <Send size={16} /> {isLoading ? 'Processing...' : 'Create Sales Order'}
               </button>
             </div>
           </form>

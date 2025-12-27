@@ -105,6 +105,21 @@ class N8nService {
         });
     }
 
+    async createSalesOrder(orderData: {
+        customerName: string;
+        customerEmail: string;
+        customerPhone: string;
+        items: Array<{
+            name: string;
+            quantity: number;
+            price: number;
+        }>;
+        tax: number;
+        paymentTerms: string;
+    }): Promise<N8nWorkflowResponse> {
+        return this.triggerWebhook('sales-order', orderData);
+    }
+
     async processPayroll(employeeIds: string[]): Promise<N8nWorkflowResponse> {
         return this.triggerWebhook('process-payroll', {
             type: 'payroll_processing',
