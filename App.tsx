@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { Payroll } from './pages/Payroll';
+import { AttendanceDetails } from './pages/AttendanceDetails';
 import { Expenses } from './pages/Expenses';
 import { Invoices } from './pages/Invoices';
 import { Chatbot } from './pages/Chatbot';
@@ -16,6 +17,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/payroll" element={<Payroll />} />
+          <Route path="/attendance-details" element={<AttendanceDetails />} />
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/reports" element={<Dashboard />} /> {/* Reusing Dashboard for Reports demo */}

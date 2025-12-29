@@ -23,6 +23,38 @@ export interface Employee {
   lastPayrollRun?: string;
 }
 
+export interface GoogleSheetsEmployee {
+  id: string;
+  password: string;
+  fullName: string;
+  pictureUrl: string;
+  designation: string;
+  cnic: string;
+  bloodGroup: string;
+  address: string;
+  emergencyContact: string;
+  status: 'Active' | 'Inactive';
+}
+
+export interface AttendanceSummary {
+  P: number; // Present
+  A: number; // Absent
+  L: number; // Late
+}
+
+export interface AttendanceCalendarEntry {
+  date: string;
+  status: 'P' | 'A' | 'L';
+}
+
+export interface AttendanceDetails {
+  success: boolean;
+  attendance: {
+    summary: AttendanceSummary;
+    calendar: AttendanceCalendarEntry[];
+  };
+}
+
 export interface AttendanceRecord {
   id: string;
   employeeId: string;
