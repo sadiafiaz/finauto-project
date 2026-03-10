@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => {
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.N8N_BASE_URL': JSON.stringify('/api/n8n'),
+      'process.env.N8N_BASE_URL': JSON.stringify(env.N8N_BASE_URL || '/api/n8n'), // Use env var
       'process.env.N8N_API_KEY': JSON.stringify(env.N8N_API_KEY)
     },
     resolve: {
