@@ -34,8 +34,9 @@ class N8nService {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const result = await response.json();
-            return { success: true, data: result };
+const text = await response.text();
+const result = text ? JSON.parse(text) : {};
+return { success: true, data: result };
         } catch (error) {
             console.error('N8n API Error:', error);
             return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
