@@ -16,8 +16,9 @@ class N8nService {
     private async makeRequest(endpoint: string, method: string = 'POST', data?: any): Promise<N8nWorkflowResponse> {
         try {
             const headers: Record<string, string> = {
-                'Content-Type': 'application/json',
-            };
+  'Content-Type': 'application/json',
+  'x-webhook-secret': process.env.NEXT_PUBLIC_WEBHOOK_SECRET || 'finAuto@Team43#2026',
+};
 
             if (this.apiKey) {
                 headers['Authorization'] = `Bearer ${this.apiKey}`;
