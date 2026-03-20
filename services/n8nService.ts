@@ -9,7 +9,7 @@ class N8nService {
     private apiKey: string;
 
     constructor() {
-        this.baseUrl = process.env.N8N_BASE_URL || 'http://localhost:5678';
+        this.baseUrl = 'https://n8n5.urdupic.online/webhook/';
         this.apiKey = process.env.N8N_API_KEY || '';
     }
 
