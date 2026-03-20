@@ -24,7 +24,7 @@ class N8nService {
                 headers['Authorization'] = `Bearer ${this.apiKey}`;
             }
 
-            const response = await fetch(`/api/proxy?endpoint=${endpoint}`, {
+            const response = await fetch(`${this.baseUrl}${endpoint}`, {
                 method,
                 headers,
                 body: data ? JSON.stringify(data) : undefined,
