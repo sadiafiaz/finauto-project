@@ -83,7 +83,7 @@ export const Tracking: React.FC = () => {
         <div className="flex gap-4 mb-8">
           <input
             type="text"
-            placeholder="Enter Order ID (e.g., OR1006)"
+            placeholder="Enter Order ID (e.g., ORD0001)"
             value={orderId}
             onChange={(e) => {
               setOrderId(e.target.value);
