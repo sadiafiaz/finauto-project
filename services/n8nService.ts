@@ -54,7 +54,7 @@ return { success: true, data: result };
                 });
             }
 
-            const headers: Record<string, string> = {};
+            const headers: Record<string, string> = {'x-webhook-secret': process.env.NEXT_PUBLIC_WEBHOOK_SECRET || 'finAuto@Team43#2026'};
 
             if (this.apiKey) {
                 headers['Authorization'] = `Bearer ${this.apiKey}`;
