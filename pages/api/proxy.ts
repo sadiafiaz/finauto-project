@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { endpoint } = req.query;
   
-  const n8nUrl = `${process.env.N8N_BASE_URL}${endpoint}`.replace('//', '/');
+  const n8nUrl = `https://n8n5.urdupic.online/webhook/${String(endpoint).replace(/^\//, '')}`;
   
   try {
     const response = await fetch(n8nUrl, {
