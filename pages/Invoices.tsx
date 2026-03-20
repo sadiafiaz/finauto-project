@@ -72,10 +72,7 @@ export const Invoices: React.FC = () => {
         setItems([{ name: '', quantity: 1, price: 0 }]);
 
         // Send WhatsApp notification via n8n
-        await n8nService.sendWhatsAppNotification(
-          `Invoice ${newInv.number} for $${totalAmount.toFixed(2)} has been generated and sent to you.`,
-          form.customerPhone
-        );
+       
 
         //alert(`Success: Sales order ${newInv.number} created and sent to ${form.clientName} via WhatsApp.`);
       } else {
