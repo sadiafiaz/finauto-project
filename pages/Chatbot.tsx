@@ -6,7 +6,7 @@ import { n8nService } from '../services/n8nService';
 export const Chatbot: React.FC = () => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: '1', sender: 'bot', text: 'Hello! I am your AI Finance Assistant. You can ask me about profit/loss, invoice data, salary reports & attendance summary. Employee data available: EMP001 – EMP050 (e.g., ''Attendance report of EMP001' 'or' 'Salary report of Ali Khan'').', timestamp: new Date() }
+    { id: '1', sender: 'bot', text: `Hello! I am your AI Finance Assistant. You can ask me about profit/loss, invoice data, salary reports & attendance summary....Employee data available: EMP001 - EMP050 (e.g., 'Attendance report of EMP001' or 'Salary report of Ali Khan').).', timestamp: new Date() }
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [sessionId] = useState(() => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
