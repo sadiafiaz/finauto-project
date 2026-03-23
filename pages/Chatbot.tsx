@@ -161,7 +161,7 @@ export const Chatbot: React.FC = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type your query (e.g., 'Show profit loss', 'Create invoice')..."
+            placeholder="Type your query (e.g., 'Show profit/loss report', 'attendance summary', 'salary report')..."
             className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-slate-700"
           />
           <button
@@ -173,7 +173,7 @@ export const Chatbot: React.FC = () => {
           </button>
         </div>
         <div className="mt-2 flex gap-2 justify-center flex-wrap">
-          {['Salary report for Imran Saleem', 'Show Profit/Loss', 'Attendance Summary', 'Create Invoice'].map((suggestion) => (
+          {['Salary report for Imran Saleem', 'Show Profit/Loss report of EMP010', 'Attendance Summary of EMP025', 'Invoice Data'].map((suggestion) => (
             <button
               key={suggestion}
               onClick={() => setInput(suggestion)}
