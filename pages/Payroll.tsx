@@ -263,7 +263,7 @@ export const Payroll: React.FC = () => {
       {activeTab === 'payroll' ? (
         <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-            <h3 className="font-bold text-slate-900">Employee List - Oct 2023</h3>
+            <h3 className="font-bold text-slate-900">Employee List - Mar 2026</h3>
             <button
               onClick={handleRunPayroll}
               disabled={isProcessing}
