@@ -333,12 +333,18 @@ export const Invoices: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <button
-                        onClick={() => alert(`Opening PDF for ${inv.number}...`)}
-                        className="text-blue-600 hover:underline text-xs font-medium flex items-center gap-1"
-                      >
-                        View PDF <ExternalLink size={12} />
-                      </button>
+                     <button
+  onClick={() => {
+    if (inv.pdf_url) {
+      window.open(inv.pdf_url, '_blank');
+    } else {
+      alert('PDF not available yet. Please wait for payroll processing.');
+    }
+  }}
+  className="text-blue-600 hover:underline text-xs font-medium flex items-center gap-1"
+>
+  View PDF <ExternalLink size={12} />
+</button>
                     </td>
                   </tr>
                 ))}
