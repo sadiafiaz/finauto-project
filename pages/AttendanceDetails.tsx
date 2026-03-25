@@ -62,6 +62,8 @@ export const AttendanceDetails: React.FC = () => {
         }
     };
 
+    const hasEmployeeData = !!attendanceData?.employee?.employee_id;
+
     const getStatusIcon = (status: string) => {
         switch (status) {
             case 'P':
@@ -140,7 +142,7 @@ export const AttendanceDetails: React.FC = () => {
             </div>
 
             {/* Employee Information Card */}
-            {attendanceData && (
+            {attendanceData && hasEmployeeData && (
                 <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
                     {attendanceData ? (
                         <div className="flex items-start gap-6">
@@ -211,8 +213,19 @@ export const AttendanceDetails: React.FC = () => {
                 </div>
             )}
 
+            {/* No Data Found */}
+            {attendanceData && !isLoading && !hasEmployeeData && (
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-10">
+                    <div className="text-center">
+                        <XCircle className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-slate-700 mb-1">No Data Found</h3>
+                        <p className="text-sm text-slate-500">No attendance records were found for the provided credentials.</p>
+                    </div>
+                </div>
+            )}
+
             {/* Attendance Data */}
-            {attendanceData && !isLoading && (
+            {attendanceData && !isLoading && hasEmployeeData && (
                 <>
                     {/* Summary Statistics */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
