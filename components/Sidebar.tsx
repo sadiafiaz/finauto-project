@@ -1,13 +1,14 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, CreditCard, FileText, MessageSquare, BarChart3, Settings, Truck } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, FileText, MessageSquare, BarChart3, Settings, Truck, CalendarCheck } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const location = useLocation();
 
   const menuItems = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/payroll', icon: Users, label: 'Payroll & Attendance' },
+    { path: '/payroll', icon: Users, label: 'Payroll' },
+    { path: '/attendance-details', icon: CalendarCheck, label: 'Attendance' },
     { path: '/expenses', icon: CreditCard, label: 'Expenses' },
     { path: '/invoices', icon: FileText, label: 'Invoices' },
     { path: '/reports', icon: BarChart3, label: 'Reports' },
@@ -29,11 +30,10 @@ export const Sidebar: React.FC = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                isActive
+              className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${isActive
                   ? 'bg-blue-600 text-white'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800'
-              }`}
+                }`}
             >
               <item.icon size={20} />
               {item.label}
@@ -43,13 +43,12 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       <div className="p-4 border-t border-slate-800">
-        <Link 
+        <Link
           to="/settings"
-          className={`flex items-center gap-3 px-4 py-3 text-sm font-medium w-full rounded-lg transition-colors ${
-            location.pathname === '/settings' 
-            ? 'bg-blue-600 text-white' 
-            : 'text-slate-400 hover:text-white hover:bg-slate-800'
-          }`}
+          className={`flex items-center gap-3 px-4 py-3 text-sm font-medium w-full rounded-lg transition-colors ${location.pathname === '/settings'
+              ? 'bg-blue-600 text-white'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
         >
           <Settings size={20} />
           Settings
