@@ -47,8 +47,23 @@ export interface AttendanceCalendarEntry {
   status: 'P' | 'A' | 'L';
 }
 
+export interface AttendanceEmployee {
+  employee_id: string;
+  name: string;
+  email: string;
+  phone: string;
+  basic_salary: number;
+  allowance: number;
+  bank_account: string;
+  ifsc_code: string;
+  department: string;
+  joining_date: string;
+  created_at: string;
+}
+
 export interface AttendanceDetails {
   success: boolean;
+  employee: AttendanceEmployee;
   attendance: {
     summary: AttendanceSummary;
     calendar: AttendanceCalendarEntry[];
