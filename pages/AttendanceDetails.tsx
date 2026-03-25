@@ -1,37 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock, CheckCircle, XCircle, AlertCircle, User, Phone, MapPin, Droplets } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, CheckCircle, XCircle, AlertCircle, Mail, Phone, Building2, Banknote, CreditCard, CalendarDays } from 'lucide-react';
 import { n8nService } from '../services/n8nService';
-import { AttendanceDetails as AttendanceDetailsType, GoogleSheetsEmployee } from '../types';
+import { AttendanceDetails as AttendanceDetailsType } from '../types';
 
 export const AttendanceDetails: React.FC = () => {
-    const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
+    const [empId, setEmpId] = useState('');
+    const [empPassword, setEmpPassword] = useState('');
     const [attendanceData, setAttendanceData] = useState<AttendanceDetailsType | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    // Employee data from URL params
-    const employeeData: GoogleSheetsEmployee = {
-        id: searchParams.get('id') || '',
-        password: searchParams.get('password') || '',
-        fullName: searchParams.get('fullName') || '',
-        pictureUrl: searchParams.get('pictureUrl') || '',
-        designation: searchParams.get('designation') || '',
-        cnic: searchParams.get('cnic') || '',
-        bloodGroup: searchParams.get('bloodGroup') || '',
-        address: searchParams.get('address') || '',
-        emergencyContact: searchParams.get('emergencyContact') || '',
-        status: 'Active'
-    };
 
     const fetchAttendanceData = async () => {
         setIsLoading(true);
         setError(null);
 
         try {
-            console.log(`Fetching attendance for employee: ${employeeData.id}`);
-            const result = await n8nService.fetchEmployeeAttendance(employeeData.id, employeeData.password);
+            console.log(`Fetching attendance for employee: ${empId}`);
+            const result = await n8nService.fetchEmployeeAttendance(empId, empPassword);
 
             if (result.success && result.data) {
                 setAttendanceData(result.data);
@@ -45,13 +30,22 @@ export const AttendanceDetails: React.FC = () => {
             // Mock data for demo purposes
             setAttendanceData({
                 success: true,
+                employee: {
+                    employee_id: empId,
+                    name: '',
+                    email: '',
+                    phone: '',
+                    basic_salary: 0,
+                    allowance: 0,
+                    bank_account: '',
+                    ifsc_code: '',
+                    department: '',
+                    joining_date: '',
+                    created_at: ''
+                },
                 attendance: {
-                    summary: {
-                        P: 21,
-                        A: 3,
-                        L: 2
-                    },
-                    calendar: generateMockCalendar()
+                    summary: { P: 21, A: 3, L: 2 },
+                    calendar: []
                 }
             });
         } finally {
@@ -59,30 +53,14 @@ export const AttendanceDetails: React.FC = () => {
         }
     };
 
-    const generateMockCalendar = () => {
-        const calendar = [];
-        const startDate = new Date('2025-11-01');
-        const statuses = ['P', 'P', 'P', 'P', 'A', 'P', 'P', 'A', 'L', 'P', 'P', 'P', 'P', 'A', 'P', 'L', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'];
-
-        for (let i = 0; i < 26; i++) {
-            const date = new Date(startDate);
-            date.setDate(startDate.getDate() + i);
-            calendar.push({
-                date: date.toISOString().split('T')[0],
-                status: statuses[i] as 'P' | 'A' | 'L'
-            });
-        }
-
-        return calendar;
-    };
-
-    useEffect(() => {
-        if (employeeData.id && employeeData.password) {
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (empId && empPassword) {
+            setAttendanceData(null);
+            setError(null);
             fetchAttendanceData();
-        } else {
-            setError('Invalid employee data');
         }
-    }, [employeeData.id, employeeData.password]);
+    };
 
     const getStatusIcon = (status: string) => {
         switch (status) {
@@ -123,87 +101,88 @@ export const AttendanceDetails: React.FC = () => {
         }
     };
 
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return {
-            day: date.getDate(),
-            month: date.toLocaleDateString('en-US', { month: 'short' }),
-            weekday: date.toLocaleDateString('en-US', { weekday: 'short' })
-        };
-    };
-
-    if (!employeeData.id) {
-        return (
-            <div className="p-6 text-center">
-                <div className="text-red-600">Invalid employee data</div>
-                <button
-                    onClick={() => navigate(-1)}
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                    Go Back
-                </button>
-            </div>
-        );
-    }
-
     return (
         <div className="space-y-6">
-            {/* Header with back button */}
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="flex items-center gap-2 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                    <ArrowLeft size={20} />
-                    Back to Attendance
-                </button>
+            {/* Page Heading */}
+            <div>
+                <h1 className="text-2xl font-bold text-slate-900">Attendance</h1>
+                <p className="text-sm text-slate-500 mt-1">Look up attendance records by employee ID</p>
+            </div>
+
+            {/* Search Form */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                <h2 className="text-lg font-semibold text-slate-900 mb-4">Employee Attendance Lookup</h2>
+                <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+                    <input
+                        type="text"
+                        placeholder="Employee ID"
+                        value={empId}
+                        onChange={(e) => setEmpId(e.target.value)}
+                        required
+                        className="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        value={empPassword}
+                        onChange={(e) => setEmpPassword(e.target.value)}
+                        required
+                        className="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isLoading ? 'Loading...' : 'Search'}
+                    </button>
+                </form>
             </div>
 
             {/* Employee Information Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-                <div className="flex items-start gap-6">
-                    <div className="flex-shrink-0">
-                        {employeeData.pictureUrl ? (
-                            <img
-                                src={employeeData.pictureUrl}
-                                alt={employeeData.fullName}
-                                className="w-20 h-20 rounded-full object-cover"
-                                onError={(e) => {
-                                    e.currentTarget.style.display = 'none';
-                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                                }}
-                            />
-                        ) : null}
-                        <div className={`w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-2xl ${employeeData.pictureUrl ? 'hidden' : ''}`}>
-                            {employeeData.fullName.charAt(0)}
-                        </div>
-                    </div>
+            {attendanceData && (
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                    {attendanceData ? (
+                        <div className="flex items-start gap-6">
+                            <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-2xl flex-shrink-0">
+                                {attendanceData.employee.name.charAt(0) || empId.charAt(0)}
+                            </div>
 
-                    <div className="flex-grow">
-                        <h1 className="text-2xl font-bold text-slate-900 mb-1">{employeeData.fullName}</h1>
-                        <p className="text-slate-600 mb-4">{employeeData.designation} • {employeeData.id}</p>
+                            <div className="flex-grow">
+                                <h1 className="text-2xl font-bold text-slate-900 mb-1">{attendanceData.employee.name || empId}</h1>
+                                <p className="text-slate-600 mb-4">{attendanceData.employee.department} • {attendanceData.employee.employee_id}</p>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div className="flex items-center gap-2 text-sm">
-                                <User className="text-slate-400" size={16} />
-                                <span className="text-slate-600">{employeeData.cnic}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                                <Droplets className="text-slate-400" size={16} />
-                                <span className="text-slate-600">{employeeData.bloodGroup}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                                <MapPin className="text-slate-400" size={16} />
-                                <span className="text-slate-600">{employeeData.address}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                                <Phone className="text-slate-400" size={16} />
-                                <span className="text-slate-600">{employeeData.emergencyContact}</span>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <Mail className="text-slate-400" size={16} />
+                                        <span className="text-slate-600">{attendanceData.employee.email}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <Phone className="text-slate-400" size={16} />
+                                        <span className="text-slate-600">{attendanceData.employee.phone}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <Building2 className="text-slate-400" size={16} />
+                                        <span className="text-slate-600">{attendanceData.employee.department}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <CalendarDays className="text-slate-400" size={16} />
+                                        <span className="text-slate-600">Joined: {attendanceData.employee.joining_date}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <Banknote className="text-slate-400" size={16} />
+                                        <span className="text-slate-600">Salary: PKR {attendanceData.employee.basic_salary.toLocaleString()} + {attendanceData.employee.allowance.toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <CreditCard className="text-slate-400" size={16} />
+                                        <span className="text-slate-600 truncate">{attendanceData.employee.bank_account}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    ) : null}
                 </div>
-            </div>
+            )}
 
             {/* Loading State */}
             {isLoading && (
@@ -239,7 +218,9 @@ export const AttendanceDetails: React.FC = () => {
                     <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
                         <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                             <Calendar size={24} />
-                            November 2025 - Attendance Summary
+                            {attendanceData.attendance.calendar.length > 0
+                                ? new Date(attendanceData.attendance.calendar[0].date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                                : 'Attendance'} - Summary
                         </h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -275,41 +256,6 @@ export const AttendanceDetails: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Calendar View */}
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-                        <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                            <Clock size={20} />
-                            Daily Attendance Calendar
-                        </h3>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
-                            {attendanceData.attendance.calendar.map((entry, index) => {
-                                const dateInfo = formatDate(entry.date);
-                                return (
-                                    <div
-                                        key={index}
-                                        className="border border-slate-200 rounded-lg p-3 hover:shadow-sm transition-shadow"
-                                    >
-                                        <div className="text-center">
-                                            <div className="text-xs text-slate-500 uppercase font-medium mb-1">
-                                                {dateInfo.weekday}
-                                            </div>
-                                            <div className="text-lg font-bold text-slate-900 mb-1">
-                                                {dateInfo.day}
-                                            </div>
-                                            <div className="text-xs text-slate-500 mb-2">
-                                                {dateInfo.month}
-                                            </div>
-                                            <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(entry.status)}`}>
-                                                {getStatusIcon(entry.status)}
-                                                {getStatusLabel(entry.status)}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
                 </>
             )}
         </div>
