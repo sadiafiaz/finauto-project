@@ -7,7 +7,6 @@ export const Sidebar: React.FC = () => {
 
   const menuItems = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/payroll', icon: Users, label: 'Payroll' },
     { path: '/attendance-details', icon: CalendarCheck, label: 'Attendance' },
     { path: '/expenses', icon: CreditCard, label: 'Expenses' },
     { path: '/invoices', icon: FileText, label: 'Invoices' },
