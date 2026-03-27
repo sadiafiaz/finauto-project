@@ -16,9 +16,9 @@ class N8nService {
     private async makeRequest(endpoint: string, method: string = 'POST', data?: any): Promise<N8nWorkflowResponse> {
         try {
             const headers: Record<string, string> = {
-  'Content-Type': 'application/json',
-  'x-webhook-secret': process.env.NEXT_PUBLIC_WEBHOOK_SECRET || 'finAuto@Team43#2026',
-};
+                'Content-Type': 'application/json',
+                'x-webhook-secret': process.env.NEXT_PUBLIC_WEBHOOK_SECRET || 'finAuto@Team43#2026',
+            };
 
             if (this.apiKey) {
                 headers['Authorization'] = `Bearer ${this.apiKey}`;
@@ -34,9 +34,9 @@ class N8nService {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-const text = await response.text();
-const result = text ? JSON.parse(text) : {};
-return { success: true, data: result };
+            const text = await response.text();
+            const result = text ? JSON.parse(text) : {};
+            return { success: true, data: result };
         } catch (error) {
             console.error('N8n API Error:', error);
             return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
@@ -54,7 +54,7 @@ return { success: true, data: result };
                 });
             }
 
-            const headers: Record<string, string> = {'x-webhook-secret': process.env.NEXT_PUBLIC_WEBHOOK_SECRET || 'finAuto@Team43#2026'};
+            const headers: Record<string, string> = { 'x-webhook-secret': process.env.NEXT_PUBLIC_WEBHOOK_SECRET || 'finAuto@Team43#2026' };
 
             if (this.apiKey) {
                 headers['Authorization'] = `Bearer ${this.apiKey}`;
@@ -171,17 +171,17 @@ return { success: true, data: result };
     }
 
     async sendChatMessage(message: string, sessionId: string): Promise<N8nWorkflowResponse> {
-    return this.triggerWebhook('a705413d-cafc-4a1e-8061-8be8fe7d2eeb', {
-        message,
-        sessionid: sessionId
-    });
-}
+        return this.triggerWebhook('a705413d-cafc-4a1e-8061-8be8fe7d2eeb', {
+            message,
+            sessionid: sessionId
+        });
+    }
 
-async trackOrder(orderId: string): Promise<N8nWorkflowResponse> {
-    return this.triggerWebhook('b22ff955-9b1c-44ea-ad1d-3d892a20f5dc', {
-        order_id: orderId
-    });
-}
+    async trackOrder(orderId: string): Promise<N8nWorkflowResponse> {
+        return this.triggerWebhook('b22ff955-9b1c-44ea-ad1d-3d892a20f5dc', {
+            order_id: orderId
+        });
+    }
 
     async fetchGoogleSheetsEmployees(spreadsheetId: string = process.env.GOOGLE_SHEETS_ID || ''): Promise<N8nWorkflowResponse> {
         // Use the correct endpoint name
@@ -197,6 +197,10 @@ async trackOrder(orderId: string): Promise<N8nWorkflowResponse> {
             id,
             password
         });
+    }
+
+    async login(id: string, password: string): Promise<N8nWorkflowResponse> {
+        return this.triggerWebhook('login', { id, password });
     }
 }
 
