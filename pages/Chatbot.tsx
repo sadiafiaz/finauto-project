@@ -49,7 +49,7 @@ export const Chatbot: React.FC = () => {
         if (lowerInput.includes('profit')) {
           botText = "📈 **Profit/Loss Report (Dec 2025)**\n\n• Revenue: $128,430\n• Expenses: $62,465\n• **Net Profit: $65,965**\n\nStatus: ✅ Profit";
         } else if (lowerInput.includes('salary') || lowerInput.includes('payroll')) {
-          botText = "💰 **Payroll Summary**\n\nPayroll for December has been calculated.\n• Total Salaries: $450,000\n• Pending Disbursals: 2\n\nWould you like me to send the payslips via WhatsApp?";
+          botText = "💰 **Payroll Summary**\n\nPayroll for December has been calculated.\n• Total Salaries: $450,000\n• Pending Disbursals: 2";
         } else if (lowerInput.includes('invoice')) {
           botText = "📄 I can help with that. Please provide the Client Name and Amount to generate a draft invoice.";
         } else if (lowerInput.includes('attendance')) {
