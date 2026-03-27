@@ -153,12 +153,7 @@ export const Tracking: React.FC = () => {
             </div>
 
             <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end">
-              <button
-                onClick={sendWhatsAppUpdate}
-                className="text-green-600 text-sm font-medium flex items-center gap-2 hover:bg-green-50 px-3 py-1 rounded-lg transition-colors"
-              >
-                <CheckCircle size={16} /> Send Update via WhatsApp
-              </button>
+              
             </div>
           </div>
         )}
