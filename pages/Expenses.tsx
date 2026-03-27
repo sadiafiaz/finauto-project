@@ -168,6 +168,7 @@ export const Expenses: React.FC = () => {
               <th className="px-6 py-4 font-semibold">Amount</th>
               <th className="px-6 py-4 font-semibold">AI Risk Score</th>
               <th className="px-6 py-4 font-semibold">Status</th>
+               <th className="px-6 py-4 font-semibold">Actions</th>
              
             </tr>
           </thead>
