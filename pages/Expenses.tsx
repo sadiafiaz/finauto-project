@@ -197,12 +197,7 @@ export const Expenses: React.FC = () => {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => alert(`Opening receipt details for ${exp.vendor}...`)}
-                      className="p-1 hover:bg-slate-100 rounded text-slate-500" title="View Receipt"
-                    >
-                      <FileText size={16} />
-                    </button>
+                    
                     {exp.status === Status.PENDING && (
                       <>
                         <button
