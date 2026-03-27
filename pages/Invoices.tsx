@@ -317,7 +317,7 @@ export const Invoices: React.FC = () => {
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4">Amount</th>
                   <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Action</th>
+                  
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -332,20 +332,7 @@ export const Invoices: React.FC = () => {
                         {inv.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                     <button
-  onClick={() => {
-    if (inv.pdf_url) {
-      window.open(inv.pdf_url, '_blank');
-    } else {
-      alert('PDF not available yet. Please wait for payroll processing.');
-    }
-  }}
-  className="text-blue-600 hover:underline text-xs font-medium flex items-center gap-1"
->
-  View PDF <ExternalLink size={12} />
-</button>
-                    </td>
+               
                   </tr>
                 ))}
               </tbody>
