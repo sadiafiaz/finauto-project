@@ -1,0 +1,4462 @@
+{
+  "name": "Project Backend File (Team 43),Production Ready",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "helpMessage",
+              "value": "⚠ No Record Found  We couldn’t find any data matching the details you provided.   Please verify your input and try again.",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "sessionId",
+              "value": "={{ $json.body.sessionid }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "messageText",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "b9ba3122-facc-4d8a-872e-99f7624fed51",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3984,
+        2176
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messageText }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=**“You are an intent detection AI.\nRead the user message and classify it into EXACTLY one of these intents:\nsalary_report\ninvoice_details\nattendance_summary\nprofit_loss\nhelp\nReturn ONLY the intent name — no explanation.\nExamples:\nUser: 'I need salary report of Ali Raza' → salary_report\nUser: 'Give me invoice for Ayesha' → invoice_details\nUser: 'Show attendance of class 6' → attendance_summary\nUser: 'Give me profit loss for this month' → profit_loss\nUser: 'What can you do?' → help\nIf the user message does not match any category, return: help.”**"
+        }
+      },
+      "id": "d78e5c8d-f805-4982-81ba-dd6e3deb8d4d",
+      "name": "Intent Detector Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        4176,
+        2176
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Workflow Configuration').first().json.sessionId }}"
+      },
+      "id": "d092f780-dbe1-449f-b2f6-5d66d84ba154",
+      "name": "Chat Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        5792,
+        2304
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "salary_report",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-1-condition-1"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "invoice_details",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-2-condition-1"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "profit_loss",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-3-condition-1"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "attendance_summary",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-4-condition-1"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "help",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "rule-5-condition-1"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": 5
+        }
+      },
+      "id": "c9da0d6e-1093-49e1-bb47-72e1a774c1d6",
+      "name": "Route by Intent",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        4528,
+        2128
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json }}",
+        "options": {
+          "systemMessage": "=You are a Message Generator AI. Your task is to generate clear, concise, and structured messages based on the data provided.\n\nRules:\nIf salary data is provided → generate a salary report message.\nIf invoice data is provided → generate an invoice detail message.\nIf attendance data is provided → generate an attendance summary.\nIf profit/loss data is provided → generate a profit/loss report.\nIf no useful data is provided → respond with: No data found.\n\nFormatting Instructions:\nUse line breaks, headings, and bullet points where appropriate.\nKeep the message clear, professional, and easy to read.\nAlways replace placeholders with actual data from the workflow.\nUse emojis only for clarity, e.g., ✅ Good, ⚠ Needs Improvement, ❌ Poor.\nNever output in a single paragraph.\n\nExamples:\n\nSalary Example:\n\n💰 Salary Report\n\nEmployee Name: Ali Raza\nEmployee ID: EMP102\nMonth: Jan 2025\nPayment Date: 05 Jan 2025\n\n• Basic Salary: 40,000\n• Allowances: 10,000\n• Deductions: 3,500\n• Net Salary: 46,500\n\nStatus: ✅ Paid\n\n\nInvoice Example:\n\n🧾 Invoice Details\n\nInvoice: 1032\nCustomer: Ali Raza\nAmount: 12,500\nStatus: Paid\n\n\nAttendance Example:\n\n📊 Attendance Summary\n\nEmployee Name: Ali Khan\nPeriod: 01 Dec 2025 – 14 Dec 2025\n\n• Total Working Days: 14\n• Present: 12\n• Absent: 2\n• Late Arrivals: 1\n• Attendance Percentage: 85.7%\n\nAttendance Status: ✅ Good\n\n\nProfit/Loss Example:\n\n📈 Profit/Loss Report\n\nPeriod: June 2025\n\n• Profit: 120,000\n• Loss: 20,000\n• Net Profit: 100,000\n\n\nImportant Notes:\nAlways follow the format shown above.\nDo not add extra commentary or unrelated text.\n"
+        }
+      },
+      "id": "c56aa149-e342-415e-9089-bbb6fd1c7683",
+      "name": "Summary Generator Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        5648,
+        2080
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "helpResponse",
+              "value": "={{ $('Workflow Configuration').item.json.helpMessage }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "0e40c7a6-e2f3-46d5-8108-2c075f6ed8b8",
+      "name": "Prepare Help Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4752,
+        2560
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"intent\": {\n      \"type\": \"string\",\n      \"description\": \"The detected user intent: salary_report, invoice_creation, profit_loss_summary, attendance_summary, or unknown\"\n    },\n    \"employee_name\": {\n      \"type\": \"string\",\n      \"description\": \"The full name of the employee mentioned in the message (e.g., Saad Jamil or Ahmed Khan)\"\n    }\n  }\n}"
+      },
+      "id": "c9086993-745e-4701-b12a-c804871a525b",
+      "name": "Intent Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        4320,
+        2400
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "b0f4c25e-5afd-4111-99eb-ab732078a071",
+      "name": "Google Gemini Model - Intent",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        4192,
+        2400
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8zJMrPLQVjtLsk5I",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "id": "bb9fd15c-e805-44e5-a943-753e4b73fcd9",
+      "name": "Google Gemini Model - Summary",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        5664,
+        2304
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8zJMrPLQVjtLsk5I",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "salary",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "name",
+              "condition": "eq",
+              "keyValue": "={{ $json.output.employee_name }}"
+            }
+          ]
+        }
+      },
+      "id": "65bf1cbe-faef-4000-8bfa-0112ef3518bc",
+      "name": "Query Salary Data",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4976,
+        1792
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "invoice",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "name",
+              "condition": "eq",
+              "keyValue": "={{ $json.output.employee_name }}"
+            }
+          ]
+        }
+      },
+      "id": "cdde1537-61bc-42ec-9ae6-679dc93dd9bc",
+      "name": "Query Invoice Data",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4976,
+        1984
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "profit_loss",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "employee_name",
+              "condition": "eq",
+              "keyValue": "={{ $json.output.employee_name }}"
+            }
+          ]
+        }
+      },
+      "id": "4ad93ac1-1d31-4376-af73-1cedd46fcf00",
+      "name": "Query Profit/Loss Data",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4976,
+        2176
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "attendance",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "employee_name",
+              "condition": "eq",
+              "keyValue": "={{ $json.output.employee_name }}"
+            }
+          ]
+        }
+      },
+      "id": "d8909a1d-a29e-40e7-93bf-3f5251ea67f9",
+      "name": "Query Attendance Data",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4752,
+        2368
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "sessionId",
+              "value": "={{ $('Workflow Configuration').first().json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "1ea2eb06-a64d-41d4-b806-833661c36741",
+              "name": "text",
+              "value": "=Employee {{$json.name}} has a net salary of {{$json.net_salary}} for {{$json.month}}.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "bb14873c-4fb1-4134-8cea-4909765de480",
+      "name": "Add Session to Salary",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5200,
+        1792
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "sessionId",
+              "value": "={{ $('Workflow Configuration').first().json.sessionId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "6c1a2a3b-f0a6-4d4f-9e58-90000432ed0b",
+      "name": "Add Session to Invoice",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5200,
+        1984
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "sessionId",
+              "value": "={{ $('Workflow Configuration').first().json.sessionId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "b6148310-208a-4d37-9367-696683b68df9",
+      "name": "Add Session to Profit/Loss",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5200,
+        2176
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "sessionId",
+              "value": "={{ $('Workflow Configuration').first().json.sessionId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "eef62d85-5dd8-4464-be31-850015631699",
+      "name": "Add Session to Attendance",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4976,
+        2368
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7e58bed1-982b-44e9-b9ef-675d0428a131",
+              "name": "text",
+              "value": "=💰 Salary Report\n\nEmployee Name: {{ $json.employee_name }}\nEmployee ID: {{ $json.id }}\nMonth: {{$json.month}}\nPayment Date: {{$json.payment_date}}\n\n• Basic Salary: {{$json.basic_salary}}\n• Allowances: {{$json.allowances}}\n• Deductions: {{$json.deductions}}\n• Net Salary: {{$json.net_salary}}\n\nStatus: {{$json.payment_date ? \"✅ Paid\" : \"⏳ Pending\"}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5424,
+        1792
+      ],
+      "id": "e5f9b1dd-afc0-476b-a370-bc1731cc2813",
+      "name": "FORMAT - Salary Report Text"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7e58bed1-982b-44e9-b9ef-675d0428a131",
+              "name": "text",
+              "value": "=🧾 Invoice Details  Invoice ID: {{$json.invoice_id}} Customer Name: {{$json.employee_name}} Employee ID: {{$json.employee_id}} Contact: {{$json.customer_contact}} Invoice Date: {{$json.invoice_date}} Due Date: {{$json.due_date}}  Item Description: {{$json.item_description}} Quantity: {{$json.quantity}} Unit Price: {{$json.unit_price}} Total Amount: {{$json.total_amount}}  Status: {{$json.status === \"Paid\" ? \"✅ Paid\" : \"⚠ Pending Payment\"}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5424,
+        1984
+      ],
+      "id": "64f4eb01-5324-450f-9441-b968e6275794",
+      "name": "FORMAT - Invoice Report Text"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7e58bed1-982b-44e9-b9ef-675d0428a131",
+              "name": "text",
+              "value": "=📈 Profit / Loss Report\n\nEmployee Name: {{ $json.employee_name }}\nPeriod: {{$json.month}}\n\n• Total Revenue: {{$json.revenue}}\n• Total Expenses: {{$json.expenses}}\n• Net Result: {{$json.profit_loss}}\n\nStatus: {{$json.profit_loss > 0 ? \"✅ Profit\" : ($json.profit_loss < 0 ? \"❌ Loss\" : \"➖ Break Even\")}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5424,
+        2176
+      ],
+      "id": "87c932b2-6568-4982-b8cb-2d976d6d298f",
+      "name": "FORMAT - Profit Loss Report Text"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7e58bed1-982b-44e9-b9ef-675d0428a131",
+              "name": "text",
+              "value": "=📊 Attendance Summary\n————————————\nEmployee: {{ $json.employee_name }}\nMonth: November 2025\n————————————\n• Total Working Days: {{$json.total_present + $json.total_absent + $json.total_late}}\n• Present: {{$json.total_present}}\n• Absent: {{$json.total_absent}}\n• Late: {{$json.total_late}}\n————————————\nAttendance Percentage: {{(\n  ($json.total_present /\n  ($json.total_present + $json.total_absent + $json.total_late)) * 100\n).toFixed(1)}}%\nStatus: {{$json.total_present >= 18 ? \"✅ Good\" : ($json.total_present >= 12 ? \"⚠️ Average\" : \"❌ Needs Improvement\")}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5408,
+        2400
+      ],
+      "id": "f319644d-1d06-4af8-8874-c76bd95ee481",
+      "name": "FORMAT - Attendance Summary Text"
+    },
+    {
+      "parameters": {
+        "jsCode": "let present = 0;\nlet absent = 0;\nlet late = 0;\n\nconst items = $input.all();\n\nfor (const item of items) {\n  const data = item.json;\n\n  present += data.present_days || 0;\n  absent += data.absent_days || 0;\n  late += data.late_days || 0;\n}\n\nreturn [\n  {\n    json: {\n      employee_name: items[0].json.employee_name,\n      total_present: present,\n      total_absent: absent,\n      total_late: late\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5200,
+        2368
+      ],
+      "id": "c0ae812d-5974-43dd-a4c2-50fd9859ba0f",
+      "name": "CALC - Count Attendance P/A/L Values"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "09a1c031-c5f6-42d9-8a57-72d964e71892",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1005867f-fa32-48ac-aca7-5867d4c33905",
+      "name": "Sales Order Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        3696,
+        352
+      ],
+      "webhookId": "09a1c031-c5f6-42d9-8a57-72d964e71892",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "li3acGOjCirZBaAF",
+          "name": "Webhook Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Generate unique invoice number with format INV-YYYYMMDD-XXXX\nconst now = new Date();\nconst year = now.getFullYear();\nconst month = String(now.getMonth() + 1).padStart(2, '0');\nconst day = String(now.getDate()).padStart(2, '0');\n\n// Generate random 4-digit number\nconst randomNum = String(Math.floor(Math.random() * 10000)).padStart(4, '0');\n\n// Create invoice number\nconst invoiceNumber = `INV-${year}${month}${day}-${randomNum}`;\n\n// Return the invoice number along with existing data\nreturn {\n  ...item.json,\n  invoiceNumber: invoiceNumber,\n  invoiceDate: now.toISOString()\n};"
+      },
+      "id": "c28e5c95-e779-4c4d-8dbd-4a53f688d76d",
+      "name": "Generate Invoice Number",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4368,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get invoice data from previous node\nconst items = $input.all();\nconst invoiceData = items[0].json;\n\n// Check if data is nested inside 'extractedBody' (from your previous code)\nconst data = invoiceData.extractedBody ? invoiceData.extractedBody : invoiceData;\n\n// Calculate subtotal by summing (quantity * price) for all items\nlet subtotal = 0;\n\nif (data.items && Array.isArray(data.items)) {\n  subtotal = data.items.reduce((sum, item) => {\n    // Ensure we use 'quantity' and 'price' as shown in your schema\n    const itemQty = parseFloat(item.quantity || 0);\n    const itemPrice = parseFloat(item.price || 0);\n    return sum + (itemQty * itemPrice);\n  }, 0);\n}\n\n// Get tax rate from the output shown in your screenshot (taxRate: 18)\nconst taxRate = parseFloat(invoiceData.taxRate || 0);\n\n// Calculate tax amount\nconst tax = subtotal * (taxRate / 100);\n\n// Calculate total\nconst total = subtotal + tax;\n\n// Return the data with fixed calculations\nreturn [{\n  json: {\n    ...invoiceData,\n    subtotal: subtotal,\n    tax: tax,\n    taxRate: taxRate,\n    total: total\n  }\n}];"
+      },
+      "id": "62b13399-f543-4225-9cce-43dda8d67e8c",
+      "name": "Calculate Invoice Totals",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4592,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "html": "<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\" />\n  <title>Invoice</title>\n</head>\n<body>\n  <div class=\"invoice-container\">\n    <div class=\"header\">\n      <div class=\"company-details\">\n        <h1>{{ $json.companyName || 'Your Company Name' }}</h1>\n        <p>{{ $json.companyAddress || 'Company Address' }}</p>\n        <p>{{ $json.companyPhone || 'Phone: +1234567890' }}</p>\n        <p>{{ $json.companyEmail || 'email@company.com' }}</p>\n      </div>\n      <div class=\"invoice-details\">\n        <h2>INVOICE</h2>\n        <p><strong>Invoice #:</strong> {{ $json.invoiceNumber }}</p>\n        <p><strong>Date:</strong> {{ $json.invoiceDate }}</p>\n        <p><strong>Due Date:</strong> {{ $json.dueDate || 'Upon Receipt' }}</p>\n      </div>\n    </div>\n    \n    <div class=\"customer-details\">\n      <h3>Bill To:</h3>\n      <p><strong>{{ $json.extractedBody.customerName }}</strong></p>\n      <p>{{ $json.customerAddress || '' }}</p>\n      <p>{{ $json.customerPhone || '' }}</p>\n      <p>{{ $json.customerEmail || '' }}</p>\n    </div>\n    \n    <table class=\"items-table\">\n      <thead>\n        <tr>\n          <th>Item Description</th>\n          <th>Quantity</th>\n          <th>Unit Price</th>\n          <th>Amount</th>\n        </tr>\n      </thead>\n      <tbody>\n        {{ $json.extractedBody.items.map(item => `\n        <tr>\n          <td>${item.name}</td>\n          <td>${item.quantity}</td>\n          <td>${item.price.toFixed(2)}</td>\n          <td>${(item.quantity * item.price).toFixed(2)}</td>\n        </tr>\n        `).join('') }}\n      </tbody>\n    </table>\n    \n    <div class=\"totals\">\n      <div class=\"totals-row\">\n        <span class=\"label\">Subtotal:</span>\n        <span class=\"value\">${{ $json.subtotal.toFixed(2) }}</span>\n      </div>\n      <div class=\"totals-row\">\n        <span class=\"label\">Tax ({{ $json.taxRate || 0 }}%):</span>\n        <span class=\"value\">${{ $json.tax.toFixed(2) }}</span>\n      </div>\n      <div class=\"totals-row total\">\n        <span class=\"label\">Total:</span>\n        <span class=\"value\">${{ $json.total.toFixed(2) }}</span>\n      </div>\n    </div>\n    \n    <div class=\"footer\">\n      <p>Thank you for your business!</p>\n      <p class=\"notes\">{{ $json.notes || 'Payment is due within 30 days.' }}</p>\n    </div>\n  </div>\n</body>\n</html>\n\n<style>\n* {\n  margin: 0;\n  padding: 0;\n  box-sizing: border-box;\n}\n\nbody {\n  font-family: 'Arial', sans-serif;\n  color: #333;\n  background-color: #f5f5f5;\n  padding: 20px;\n}\n\n.invoice-container {\n  max-width: 800px;\n  margin: 0 auto;\n  background-color: #ffffff;\n  padding: 40px;\n  border-radius: 8px;\n  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);\n}\n\n.header {\n  display: flex;\n  justify-content: space-between;\n  margin-bottom: 40px;\n  padding-bottom: 20px;\n  border-bottom: 2px solid #4a90e2;\n}\n\n.company-details h1 {\n  color: #4a90e2;\n  font-size: 28px;\n  margin-bottom: 10px;\n}\n\n.company-details p {\n  font-size: 14px;\n  line-height: 1.6;\n  color: #666;\n}\n\n.invoice-details {\n  text-align: right;\n}\n\n.invoice-details h2 {\n  color: #4a90e2;\n  font-size: 32px;\n  margin-bottom: 10px;\n}\n\n.invoice-details p {\n  font-size: 14px;\n  line-height: 1.8;\n}\n\n.customer-details {\n  margin-bottom: 30px;\n  padding: 20px;\n  background-color: #f9f9f9;\n  border-radius: 5px;\n}\n\n.customer-details h3 {\n  color: #4a90e2;\n  font-size: 16px;\n  margin-bottom: 10px;\n}\n\n.customer-details p {\n  font-size: 14px;\n  line-height: 1.6;\n}\n\n.items-table {\n  width: 100%;\n  border-collapse: collapse;\n  margin-bottom: 30px;\n}\n\n.items-table thead {\n  background-color: #4a90e2;\n  color: white;\n}\n\n.items-table th {\n  padding: 12px;\n  text-align: left;\n  font-weight: bold;\n  font-size: 14px;\n}\n\n.items-table td {\n  padding: 12px;\n  border-bottom: 1px solid #e0e0e0;\n  font-size: 14px;\n}\n\n.items-table tbody tr:hover {\n  background-color: #f5f5f5;\n}\n\n.items-table th:last-child,\n.items-table td:last-child {\n  text-align: right;\n}\n\n.totals {\n  margin-left: auto;\n  width: 300px;\n  margin-bottom: 30px;\n}\n\n.totals-row {\n  display: flex;\n  justify-content: space-between;\n  padding: 10px 0;\n  font-size: 16px;\n}\n\n.totals-row.total {\n  border-top: 2px solid #4a90e2;\n  margin-top: 10px;\n  padding-top: 15px;\n  font-weight: bold;\n  font-size: 20px;\n  color: #4a90e2;\n}\n\n.footer {\n  text-align: center;\n  margin-top: 40px;\n  padding-top: 20px;\n  border-top: 1px solid #e0e0e0;\n}\n\n.footer p {\n  font-size: 14px;\n  line-height: 1.8;\n  color: #666;\n}\n\n.footer .notes {\n  font-style: italic;\n  margin-top: 10px;\n}\n</style>"
+      },
+      "id": "d4cf80cf-8934-4e05-9abe-929af1519bc0",
+      "name": "Generate HTML Invoice",
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        4816,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "name": "=invoice: {{ $('Calculate Invoice Totals').item.json.invoiceNumber }}.pdf",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Z6fu2S4HrPMof599LEU8kIs0nQev8BiQ",
+          "mode": "list",
+          "cachedResultName": "Sales Invoice ",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Z6fu2S4HrPMof599LEU8kIs0nQev8BiQ"
+        },
+        "options": {}
+      },
+      "id": "e9e3b3e0-b60a-49b0-9b00-3f74cfa9ceb6",
+      "name": "Upload to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        5264,
+        352
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "PbEEBo4PvHm7BUhW",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "subject": "=Invoice {{ $json.invoice_number }}from {{ $('Workflow Configuration2').first().json.companyName }}",
+        "message": "=Dear {{ $json.customer_name }},\n\nPlease find attached your invoice {{ $json.invoice_number }}.\n\nTotal Amount: ${{ $json.total }}\nDue Date: {{ $json.due_date }}\n\nThank you for your business!",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "id": "98ecd740-d87b-4ebb-ae34-f59be49d167c",
+      "name": "Send Invoice via Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        6384,
+        352
+      ],
+      "webhookId": "74a8061e-7952-4d32-92e0-2e2fe7e389fb",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "wGJCTsRb5VnTzjCq",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "id": "54a9fa7e-defd-4f39-972a-80551f79bcf8",
+      "name": "Merge Invoice Data with PDF",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5488,
+        272
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "tableId": "sales_invoices",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "invoice_number",
+              "fieldValue": "={{ $json.invoiceNumber }}"
+            },
+            {
+              "fieldId": "customer_email",
+              "fieldValue": "={{ $('Calculate Invoice Totals').item.json.extractedBody.customerEmail }}"
+            },
+            {
+              "fieldId": "customer_phone",
+              "fieldValue": "={{ $('Calculate Invoice Totals').item.json.extractedBody.customerPhone }}"
+            },
+            {
+              "fieldId": "items",
+              "fieldValue": "={{ $('Calculate Invoice Totals').item.json.extractedBody.items }}"
+            },
+            {
+              "fieldId": "subtotal",
+              "fieldValue": "={{ $json.subtotal }}"
+            },
+            {
+              "fieldId": "tax",
+              "fieldValue": "={{ $json.tax }}"
+            },
+            {
+              "fieldId": "total",
+              "fieldValue": "={{ $json.total }}"
+            },
+            {
+              "fieldId": "due_date",
+              "fieldValue": "={{ $json.due_date }}"
+            },
+            {
+              "fieldId": "file_url",
+              "fieldValue": "={{ $json.webViewLink }}"
+            },
+            {
+              "fieldId": "payment_status",
+              "fieldValue": "={{ $json.payment_status }}"
+            },
+            {
+              "fieldId": "created_at",
+              "fieldValue": "={{ $now }}"
+            },
+            {
+              "fieldId": "customer_name",
+              "fieldValue": "="
+            }
+          ]
+        }
+      },
+      "id": "9dc719db-f09c-4011-bcf3-f7fac94f003b",
+      "name": "Save Invoice to Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        5712,
+        272
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Map through the incoming items from the previous node\nconst results = items.map(item => {\n  let bodyData = null;\n\n  // Check if 'body' exists in the incoming JSON (as seen in your schema)\n  if (item.json && item.json.body) {\n    bodyData = item.json.body;\n  }\n\n  // Return the data in the required n8n format\n  return {\n    json: {\n      // This will now contain customerEmail, customerPhone, and items\n      extractedBody: bodyData,\n      // Helper fields for easy use in later nodes\n      customer: bodyData ? bodyData.customerEmail : 'N/A',\n      itemCount: bodyData && bodyData.items ? bodyData.items.length : 0\n    }\n  };\n});\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3920,
+        352
+      ],
+      "id": "5761994b-f94d-49d7-9712-24d5f6956314",
+      "name": "PARSE - Extract Body from Sales Request"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "32e0b7f6-b331-4d68-ae7b-e1730dbfdb4f",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "6430433f-6276-4081-89a4-e9e78d527d92",
+      "name": "Invoice Upload Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        16,
+        1440
+      ],
+      "webhookId": "32e0b7f6-b331-4d68-ae7b-e1730dbfdb4f",
+      "notesInFlow": false,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "li3acGOjCirZBaAF",
+          "name": "Webhook Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{$binary.attachment_0.mimeType}}",
+              "rightValue": "pdf",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "cb63d9fa-0888-4663-8652-1b5015e8c810",
+      "name": "Check File Type",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        1152
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "attachment_0",
+        "options": {}
+      },
+      "id": "e0ea7a2e-d06a-4906-8cc1-acff0c285326",
+      "name": "Extract Text from PDF",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        1152
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "e6439304-eae1-4f02-af77-78d84cfe53ee",
+      "name": "Merge OCR Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        912,
+        1152
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Extract Text from PDF').item.json.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an invoice data extraction assistant. Extract structured data from the provided invoice text.\n\nExtract the following fields:\n- supplier_name: Name of the supplier/vendor\n- invoice_number: Invoice number\n- invoice_date: Invoice date (YYYY-MM-DD format)\n- due_date: Payment due date (YYYY-MM-DD format)\n- items: Array of line items, each with:\n  - name: Item/service name\n  - quantity: Quantity\n  - unit_price: Unit price\n  - total: Line total\n- subtotal: Subtotal amount\n- tax: Tax amount\n- grand_total: Grand total amount\n\nReturn the data in the exact JSON schema format specified by the output parser."
+        }
+      },
+      "id": "0af5ee77-f700-4828-ab27-15d79c1c9c96",
+      "name": "AI Agent - Extract Invoice Data",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1136,
+        1152
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "tableId": "purchase_invoices",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "supplier_name",
+              "fieldValue": "={{ $json.output.supplier_name }}"
+            },
+            {
+              "fieldId": "invoice_number",
+              "fieldValue": "={{ $json.output.invoice_number }}"
+            },
+            {
+              "fieldId": "invoice_date",
+              "fieldValue": "={{ $json.output.invoice_date }}"
+            },
+            {
+              "fieldId": "due_date",
+              "fieldValue": "={{ $json.output.due_date }}"
+            },
+            {
+              "fieldId": "subtotal",
+              "fieldValue": "={{ $json.output.subtotal }}"
+            },
+            {
+              "fieldId": "tax",
+              "fieldValue": "={{ $json.output.tax }}"
+            },
+            {
+              "fieldId": "grand_total",
+              "fieldValue": "={{ $json.output.grand_total }}"
+            }
+          ]
+        }
+      },
+      "id": "a6b972db-bd6e-4b32-8c2c-ad1262daaad9",
+      "name": "Insert Invoice to Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1488,
+        1152
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "purchase_items",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "purchase_invoice_id",
+              "fieldValue": "={{ $('AI Agent - Extract Invoice Data').item.json.output.invoice_number }}"
+            },
+            {
+              "fieldId": "item_name",
+              "fieldValue": "={{ $json.name }}"
+            },
+            {
+              "fieldId": "quantity",
+              "fieldValue": "={{ $json.quantity }}"
+            },
+            {
+              "fieldId": "unit_price",
+              "fieldValue": "={{ $json.unit_price }}"
+            },
+            {
+              "fieldId": "total",
+              "fieldValue": "={{ $json.total }}"
+            }
+          ]
+        }
+      },
+      "id": "b0d940b2-afd6-42f6-b09d-d5885030027a",
+      "name": "Insert Invoice Items to Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        1056
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "921da35b-faf7-4ec0-b46d-6cd265101782",
+      "name": "Merge Binary with Extracted Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2384,
+        1232
+      ]
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "attachment_0",
+        "name": "invoice.pdf",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "=1D8fxu6bs_k7kFb1BNz5pLe0Rg16wlay8",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "00ffe59a-f94e-4b19-adef-a538d6cdf51c",
+      "name": "Upload Invoice to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2608,
+        1232
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "PbEEBo4PvHm7BUhW",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "whatsappMessage",
+              "value": "=🧾 *New Invoice Received*\n\n*Supplier:* {{ $('AI Agent - Extract Invoice Data').item.json.output.supplier_name }}\n*Invoice #:* {{ $('AI Agent - Extract Invoice Data').item.json.output.invoice_number }}\n*Amount:* {{ $('AI Agent - Extract Invoice Data').item.json.output.grand_total }}\n*Due Date:* {{ $('AI Agent - Extract Invoice Data').item.json.output.due_date }}\n\n📎 *File:* {{ $json.webViewLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "d18f41c4-e9ca-414c-ad09-72c0882974e7",
+      "name": "Prepare WhatsApp Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2832,
+        1232
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "6a2d1227-d9d0-4400-b361-6cfbfb1e0d58",
+      "name": "Daily Payment Reminder Check",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        4528,
+        1216
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "purchase_invoices",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "due_date",
+              "condition": "lt",
+              "keyValue": "={{ $now.plus({days: 3}).toFormat('yyyy-MM-dd') }}"
+            }
+          ]
+        }
+      },
+      "id": "2b4c3e03-e1c6-4acd-b0cb-48d89bc80be7",
+      "name": "Query Upcoming Due Invoices",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4752,
+        1216
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json }}",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "id-2",
+              "leftValue": "={{ $itemIndex + 1 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "d8bda5c1-ed84-4fb5-82af-2fafa5113702",
+      "name": "Check If Invoices Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4976,
+        1216
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "reminderMessage",
+              "value": "=⚠️ *Payment Reminder*\n\n*Supplier:* {{ $json.supplier_name }}\n*Invoice #:* {{ $json.invoice_number }}\n*Amount Due:* ${{ $json.grand_total }}\n*Due Date:* {{ $json.due_date }}\n\n⏰ Payment is due in 3 days!",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "06521889-449b-4fcb-b9c0-98361516b9ce",
+      "name": "Prepare Payment Reminder",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5200,
+        1216
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "=",
+        "textBody": "={{ $json.reminderMessage }}",
+        "additionalFields": {}
+      },
+      "id": "2ff68622-d8c2-4ddb-b958-aaca2fd39066",
+      "name": "Send Payment Reminder",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        5424,
+        1216
+      ],
+      "webhookId": "de4fd586-e36c-44c4-ad64-c3a317ef98c5",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "whatsAppApi": {
+          "id": "oigk7TVaI864JkjR",
+          "name": "WhatsApp account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        1376
+      ],
+      "id": "362b136e-6e5f-471b-afc0-52541d2cf4f3",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8zJMrPLQVjtLsk5I",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={\n  \"type\": \"object\",\n  \"required\": [\n    \"supplier_name\",\n    \"invoice_number\",\n    \"invoice_date\",\n    \"due_date\",\n    \"items\",\n    \"subtotal\",\n    \"tax\",\n    \"grand_total\"\n  ],\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"supplier_name\": { \"type\": \"string\" },\n    \"invoice_number\": { \"type\": \"string\" },\n    \"invoice_date\": { \"type\": \"string\" },\n    \"due_date\": { \"type\": \"string\" },\n    \"items\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"required\": [\"name\", \"quantity\", \"unit_price\", \"total\"],\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"name\": { \"type\": \"string\" },\n          \"quantity\": { \"type\": \"number\" },\n          \"unit_price\": { \"type\": \"number\" },\n          \"total\": { \"type\": \"number\" }\n        }\n      }\n    },\n    \"subtotal\": { \"type\": \"number\" },\n    \"tax\": { \"type\": \"number\" },\n    \"grand_total\": { \"type\": \"number\" }\n  }\n}"
+      },
+      "id": "58df558b-3417-46d0-bd4c-64e047d4b5d1",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1280,
+        1376
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1712,
+        1152
+      ],
+      "id": "7a3f5886-b609-416d-b4db-c881133783e1",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "LOOP - Items Processed (End)",
+      "typeVersion": 1,
+      "position": [
+        1856,
+        1296
+      ],
+      "id": "6331fdea-f364-4193-b53d-8a0f8c99df52"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "taxRate",
+              "value": 18,
+              "type": "number"
+            },
+            {
+              "id": "id-2",
+              "name": "companyName",
+              "value": "Blund Dyestuff PVT LTD",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "companyAddress",
+              "value": "plot #1 , Rainbow city , mandi Bahauddin",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "companyEmail",
+              "value": "amazon.highflyerz@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "companyPhone",
+              "value": "+92 322 6617997",
+              "type": "string"
+            },
+            {
+              "id": "id-admin-phone",
+              "name": "adminPhoneNumber",
+              "value": "+ENTER_ADMIN_PHONE_NUMBER_WITH_COUNTRY_CODE",
+              "type": "string",
+              "_comment": "PRODUCTION FIX: Replace with actual admin WhatsApp number e.g. +923001234567"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "d0110123-a776-484c-9861-4be1ce9a110b",
+      "name": "Workflow Configuration2",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4144,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5936,
+        352
+      ],
+      "id": "b1e9a7ca-6a15-4d6f-8cb3-522107fe25f2",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "adminPhoneNumber",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "financeTeamPhoneNumber",
+              "value": "<__PLACEHOLDER_VALUE__Finance Team WhatsApp Phone Number (with country code)__>",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "googleDriveFolderId",
+              "value": "<__PLACEHOLDER_VALUE__Google Drive Folder ID for invoice storage__>",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "21bdaf06-e806-4a07-95ef-b1010ad7aade",
+      "name": "Workflow Configuration3",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        1440
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d98778ad-21c7-45ee-ad5c-d5d9d1e4be33",
+              "name": "purchase_invoice_id",
+              "value": "={{ $json.invoice_number }}",
+              "type": "string"
+            },
+            {
+              "id": "98e9c47f-39db-43a1-89c4-4f2ab3c70809",
+              "name": "name",
+              "value": "={{ $json.supplier_name }}",
+              "type": "string"
+            },
+            {
+              "id": "3237ec69-55d4-4824-b990-597e741444e8",
+              "name": "quantity",
+              "value": "={{ $('AI Agent - Extract Invoice Data').item.json.output.items[0].quantity }}",
+              "type": "number"
+            },
+            {
+              "id": "de2bcdc2-c2f0-449a-977b-84031a747fc0",
+              "name": "unit_price",
+              "value": "={{ $('AI Agent - Extract Invoice Data').item.json.output.items[0].unit_price }}",
+              "type": "number"
+            },
+            {
+              "id": "7a16faf4-bda7-4b91-beef-541282b57b99",
+              "name": "total",
+              "value": "={{ $('AI Agent - Extract Invoice Data').item.json.output.items[0].total }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1936,
+        1056
+      ],
+      "id": "97434865-145a-4c5a-900a-76e8b614f99e",
+      "name": "PREPARE - Invoice Item Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3d083f07-511b-47ca-a847-a6acff411f6f",
+              "name": "order_id",
+              "value": "={{ $json.body.order_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        816,
+        2112
+      ],
+      "id": "1f166ddb-151a-4891-aa12-d2c5ef59d898",
+      "name": "EXTRACT - Order ID from Request"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "=orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "=order_id",
+              "keyValue": "={{ $('EXTRACT - Order ID from Request').item.json.order_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1488,
+        2208
+      ],
+      "id": "48c1f2ea-98ce-4ed9-8a83-f7f89deee462",
+      "name": "SUPA - Get Order Details by ID",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "📌 Payroll & Attendance Automation\n\n\n• Processes attendance data\n• Links with payroll\n• Reduces manual work\n\n",
+        "height": 1200,
+        "width": 3488
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -16,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "c6fedbb2-4d02-4ab7-8979-425735645671",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "SALES INVOICE\n\nManual invoice entry\n\nBackend validation\n\nInvoice sent via email",
+        "height": 784,
+        "width": 3168,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3488,
+        64
+      ],
+      "typeVersion": 1,
+      "id": "7d554b4d-7030-4431-a1d0-fb7df774722d",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": " PURCHASE INVOICE\n\nReceipt upload from dashboard\n\nAutomated invoice processing\n\nInvoice details sent via WhatsApp",
+        "height": 800,
+        "width": 3488,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        1024
+      ],
+      "typeVersion": 1,
+      "id": "a1b08005-d796-4faa-9140-b9b47d3e6398",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "PAYMENT REMINDER\n\nMonitors due dates\n\nTriggers reminders automatically\n\nSends reminders via WhatsApp",
+        "height": 832,
+        "width": 3152,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3488,
+        848
+      ],
+      "typeVersion": 1,
+      "id": "2987d381-6580-4f0f-9e0f-e1b2b2ce4e06",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "WHATSAPP CHATBOT\n\nReport requests via WhatsApp\n\nFetches finance data\n\nInstant report delivery",
+        "height": 1024,
+        "width": 3152,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3488,
+        1680
+      ],
+      "typeVersion": 1,
+      "id": "6787f5a0-7bee-4496-a8b2-062289b70467",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "DELIVERY TRACKING\n\nTracks order status\n\nProcesses courier updates\n\nSends tracking info via WhatsApp",
+        "height": 944,
+        "width": 3520,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -32,
+        1840
+      ],
+      "typeVersion": 1,
+      "id": "b9bedbb9-3ce5-469e-91a3-4d7013e84ef9",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "3446df49-64d8-49a8-a424-98452b6c4ef9",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        3728,
+        2176
+      ],
+      "id": "90c91b88-f340-4a8d-8526-eab390113fa0",
+      "name": "Chatbot webhook",
+      "webhookId": "3446df49-64d8-49a8-a424-98452b6c4ef9",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "li3acGOjCirZBaAF",
+          "name": "Webhook Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5df2205b-4bb9-4dc7-b33b-2ef2af22e9ca",
+              "leftValue": "={{ $json.order_id }}",
+              "rightValue": "=^ORD00([0-4][0-9]|50)$",
+              "operator": {
+                "type": "string",
+                "operation": "notRegex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1024,
+        2112
+      ],
+      "id": "d186cb67-2b5a-42e3-bcff-18606c79acf5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d073cae5-4a8e-48eb-a096-c93f6e5178d6",
+              "leftValue": "={{ $json.order_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1712,
+        2208
+      ],
+      "id": "1b8e3370-d4eb-4b3f-a619-e0220b142afb",
+      "name": "IF - Check Order Record Found"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "delivered",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8298d72e-59eb-4fee-9e54-cf077235f619"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "delivered"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "in_transit",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "d38ef06a-a226-4910-a488-ebd8c9c64435"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "In_Transit"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "dispatched",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "249e48e5-c99f-42eb-b230-e7effd9cedbf"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Dispatched"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "delayed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "d309b52f-2c9d-44bd-b2b7-e6c63590405a"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Delayed"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0f6b5be4-7046-4da2-a47f-ce578a03e75b",
+      "name": "VALIDATE - Order Status Check",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1952,
+        2176
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"reply\": \"{{ $json.reply }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3056,
+        1232
+      ],
+      "id": "b2415393-0e33-4cab-881b-496c35b38fe9",
+      "name": "Respond to Invoice Upload Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fc51ac7a-bae1-40a0-957d-042d96c361d8",
+              "name": "reply",
+              "value": "=Dear {{ $json.customer_name }},\nYour order from {{ $json.brand_name }} has been successfully delivered.\n\nOrder ID: {{ $json.order_id }}\nAmount PKR: {{ $json.amount }}\nTracking Number: {{ $json.tracking_number }}\nCourier: {{ $json.courier }}\n{{ $json.tracking_url }}\n\nThank you for shopping with us!",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2176,
+        1888
+      ],
+      "id": "268d420e-b902-4e35-80cf-4c6e29da09ae",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "71b5bdac-34c0-4dda-95c5-94fa9c8a11a1",
+              "name": "reply",
+              "value": "=Dear {{ $json.customer_name }},\nYour order from {{ $json.brand_name }} is currently in transit\n\nOrder ID: {{ $json.order_id }}\nAmount PKR: {{ $json.amount }}\nTracking Number: {{ $json.tracking_number }}\nCourier: {{ $json.courier }}\n{{ $json.tracking_url }}\n\nThank you for your patience.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2176,
+        2048
+      ],
+      "id": "cc879888-bce4-4650-9715-237009ad120f",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ca6948e1-434b-4029-9de9-ccb14497103d",
+              "name": "reply",
+              "value": "=Dear {{ $json.customer_name }},\nYour order from {{ $json.brand_name }} has been shipped.\n\nOrder ID: {{ $json.order_id }}\nAmount PKR: {{ $json.amount }}\nTracking Number: {{ $json.tracking_number }}\nCourier: {{ $json.courier }}\n{{ $json.tracking_url }}\n\nThank you.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2176,
+        2208
+      ],
+      "id": "d332d211-aa1a-4d19-9c3a-220755d26117",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2baffedc-9393-4d36-95d8-a21f233c223b",
+              "name": "reply",
+              "value": "=Dear {{ $json.customer_name }}, We regret to inform you that your order from {{ $json.brand_name }} has been delayed.\n\nOrder ID: {{ $json.order_id }}\nAmount PKR: {{ $json.amount }}\nTracking Number: {{ $json.tracking_number }}\nCourier: {{ $json.courier }}\n{{ $json.tracking_url }}\nWe are working to resolve this and will update you shortly.\nThank you for understanding.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2320,
+        2336
+      ],
+      "id": "51c73a62-693d-4185-a447-d3e020bcf939",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "928fe173-7c1a-4dfc-bfa5-a78e54e87b39",
+              "name": "reply",
+              "value": "Order not found. Please check your Order ID.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1920,
+        1968
+      ],
+      "id": "c4723c30-7e17-42c8-a556-5658f5cf04aa",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"reply\": $json.output.replace(/\\n/g, \"\\n\") } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        6000,
+        2080
+      ],
+      "id": "cfd8ca59-7d5f-448a-8bbf-8b57b22d0c7c",
+      "name": "Respond to Chatbot webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"reply\": \"{{ $json.reply }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        6160,
+        352
+      ],
+      "id": "3124d38e-2af8-4285-b31c-745e01d7bfb1",
+      "name": "Respond to Sales Order Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e5cd7785-afb6-443e-a3d4-b3f8938ff161",
+              "name": "reply",
+              "value": "Please enter a valid Order Id",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1344,
+        2016
+      ],
+      "id": "ec63b91d-58e5-487a-bcc3-b44d57705974",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"reply\": $json.reply } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2656,
+        2128
+      ],
+      "id": "d4c79e69-4ce2-4e85-b655-e2a199607881",
+      "name": "Respond to Delivery Tracking"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "35de9a87-8a3a-45a7-a45d-600049e6dc0b",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        592,
+        2144
+      ],
+      "id": "95ce243a-1794-4804-819f-4b7c2a297cea",
+      "name": "Delivery Tracking",
+      "webhookId": "35de9a87-8a3a-45a7-a45d-600049e6dc0b",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "li3acGOjCirZBaAF",
+          "name": "Webhook Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pdfshift.io/v3/convert/pdf",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "source",
+              "value": "={{ $json.html }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        5040,
+        416
+      ],
+      "id": "d6644f84-1fc3-457d-a6e7-4e24abe368d6",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "BKdrjnVPzbMMvY1E",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pdfshift.io/v3/convert/pdf",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"source\": {{ JSON.stringify($('HTML - Generate Payslip').item.json.html_content) }}\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2112,
+        -48
+      ],
+      "id": "d45553a2-7358-48d0-8fae-a7bdf66d8969",
+      "name": "PDF - Convert via PDFShift",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "BKdrjnVPzbMMvY1E",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months",
+              "triggerAtDayOfMonth": 25,
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        192,
+        96
+      ],
+      "id": "b42121da-7967-444b-9fac-a811bc10a3cb",
+      "name": "SCHED - Monthly Payroll Run Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const now = new Date();\nconst month = (now.getMonth() + 1).toString().padStart(2, '0');\nconst year = now.getFullYear();\nconst month_year = `${month}-${year}`;\nreturn [{json: {month_year}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        96
+      ],
+      "id": "cc8ac886-0c1a-4fef-a105-0b58db02d646",
+      "name": "CD - Calculate Month/Year"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "employees",
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        560,
+        96
+      ],
+      "id": "ff214cc7-6a06-45ec-a342-4a45eeb9e7bc",
+      "name": "SUPA - Get All Employees",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 10,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        768,
+        96
+      ],
+      "id": "8f10ebbd-ab08-43bd-8f3b-0467dad7a86c",
+      "name": "LOOP - Process Each Employee"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "attendance",
+        "returnAll": true,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "employee_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.employee_id }}"
+            },
+            {
+              "keyName": "month_year",
+              "condition": "eq",
+              "keyValue": "={{ $('CD - Calculate Month/Year').item.json.month_year }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        16
+      ],
+      "id": "8149bbcb-d0fd-4b3e-9409-94303a1f0ed0",
+      "name": "SUPA - Get Employee Attendance",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get employee from loop\nconst employee = $('LOOP - Process Each Employee').item.json;\n// Get attendance (first record or empty object)\nconst attendanceItems = $input.all();\nconst attendance = attendanceItems.length > 0 ? attendanceItems[0].json : {};\n\nconst monthYear = $('CD - Calculate Month/Year').item.json.month_year;\n\n// Salary calculation\nconst basicSalary = employee.basic_salary || 0;\nconst allowance = employee.allowance || 0;\nconst dailySalary = basicSalary / 30;\nconst absentDays = attendance.absent_days || 0;\nconst lateDays = attendance.late_days || 0;\nconst absentDeduction = absentDays * dailySalary;\nconst lateDeduction = lateDays * 500;\nconst grossSalary = basicSalary + allowance;\nconst totalDeductions = Math.round(absentDeduction + lateDeduction);\nconst netSalary = grossSalary - totalDeductions;\n\nreturn {\n  json: {\n    employee_id: employee.employee_id,\n    employee_name: employee.name,\n    employee_email: employee.email,\n    employee_phone: employee.phone,\n    basic_salary: basicSalary,\n    allowance: allowance,\n    working_days: attendance.working_days || 30,\n    present_days: attendance.present_days || 0,\n    absent_days: absentDays,\n    late_days: lateDays,\n    daily_salary: Math.round(dailySalary),\n    absent_deduction: Math.round(absentDeduction),\n    late_deduction: lateDeduction,\n    gross_salary: grossSalary,\n    total_deductions: totalDeductions,\n    net_salary: netSalary,\n    payslip_date: new Date().toISOString().split('T')[0],\n    month_year: monthYear\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1216,
+        32
+      ],
+      "id": "ee289921-d524-45b6-a78d-6aff933472e4",
+      "name": "CD - Calculate Net Salary"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.item.json;\n\nconst html = `\n<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <style>\n    body { font-family: Arial, sans-serif; margin: 20px; }\n    .header { text-align: center; border-bottom: 3px solid #333; padding-bottom: 10px; }\n    .info-row { display: flex; justify-content: space-between; margin: 10px 0; }\n    .section { margin: 20px 0; }\n    table { width: 100%; border-collapse: collapse; margin: 20px 0; }\n    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }\n    th { background-color: #4CAF50; color: white; }\n    .total-row { font-weight: bold; background-color: #f0f0f0; }\n    .net-salary { background-color: #4CAF50; color: white; font-size: 18px; }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <h1>SALARY SLIP</h1>\n    <p>Month: ${data.month_year}</p>\n  </div>\n  <div class=\"section\">\n    <h3>Employee Information</h3>\n    <div class=\"info-row\">\n      <span><strong>Name:</strong> ${data.employee_name}</span>\n      <span><strong>Employee ID:</strong> ${data.employee_id}</span>\n    </div>\n    <div class=\"info-row\">\n      <span><strong>Email:</strong> ${data.employee_email}</span>\n      <span><strong>Date:</strong> ${data.payslip_date}</span>\n    </div>\n  </div>\n  <div class=\"section\">\n    <h3>Salary Details</h3>\n    <table>\n      <tr><th>Description</th><th>Amount (PKR)</th></tr>\n      <tr><td>Basic Salary</td><td>${data.basic_salary}</td></tr>\n      <tr><td>Allowances</td><td>${data.allowance}</td></tr>\n      <tr class=\"total-row\"><td>Gross Salary</td><td>${data.gross_salary}</td></tr>\n    </table>\n  </div>\n  <div class=\"section\">\n    <h3>Attendance Summary</h3>\n    <table>\n      <tr><th>Category</th><th>Days</th></tr>\n      <tr><td>Working Days</td><td>${data.working_days}</td></tr>\n      <tr><td>Present Days</td><td>${data.present_days}</td></tr>\n      <tr><td>Absent Days</td><td>${data.absent_days}</td></tr>\n      <tr><td>Late Days</td><td>${data.late_days}</td></tr>\n    </table>\n  </div>\n  <div class=\"section\">\n    <h3>Deductions</h3>\n    <table>\n      <tr><th>Description</th><th>Amount (PKR)</th></tr>\n      <tr><td>Absent Deduction (${data.absent_days} days x PKR ${data.daily_salary})</td><td>${data.absent_deduction}</td></tr>\n      <tr><td>Late Deduction (${data.late_days} days x PKR 500)</td><td>${data.late_deduction}</td></tr>\n      <tr class=\"total-row\"><td>Total Deductions</td><td>${data.total_deductions}</td></tr>\n    </table>\n  </div>\n  <div class=\"section\">\n    <table>\n      <tr class=\"net-salary\"><th>NET SALARY</th><th>PKR ${data.net_salary}</th></tr>\n    </table>\n  </div>\n  <div style=\"margin-top: 40px; text-align: center; color: #666;\">\n    <p>This is a computer-generated payslip. No signature required.</p>\n  </div>\n</body>\n</html>\n`;\n\nreturn {\n  json: {\n    ...data,\n    html_content: html\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        32
+      ],
+      "id": "49c3ac88-3f2c-4245-ae7c-72e7e203f051",
+      "name": "HTML - Generate Payslip"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "payroll_runs",
+        "limit": 1,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "employee_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.employee_id }}"
+            },
+            {
+              "keyName": "month_year",
+              "condition": "eq",
+              "keyValue": "={{ $json.month_year }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        48
+      ],
+      "id": "ca16ac84-818b-4f0d-b22f-23d9d80b9448",
+      "name": "SUPA - Check Existing Payroll",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "83b6e821-2279-440b-9c34-0ddc72ca038b",
+              "leftValue": "={{ $('HTML - Generate Payslip').item.json.employee_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1888,
+        32
+      ],
+      "id": "7c26393c-4835-4131-816b-a66972048842",
+      "name": "IF - Payroll Already Exists"
+    },
+    {
+      "parameters": {
+        "sendTo": "=",
+        "subject": "=💰 Salary Slip - {{ $('HTML - Generate Payslip').item.json.employee_name }} - {{ $('HTML - Generate Payslip').item.json.month_year }}",
+        "message": "=Dear {{ $('HTML - Generate Payslip').item.json.employee_name }},\n\nPlease find your salary slip for {{ $('HTML - Generate Payslip').item.json.month_year }} attached.\n\nNet Salary: PKR {{ $('HTML - Generate Payslip').item.json.net_salary }}\n\nRegards,\nFinAuto Finance System",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2320,
+        -144
+      ],
+      "id": "8c9f1a12-da46-4e03-a8b3-c471594a020c",
+      "name": "EMAIL - Send Payslip",
+      "webhookId": "58ed7b9a-976c-45ba-8e1a-93bd3fd50f8e",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "wGJCTsRb5VnTzjCq",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "tableId": "payroll_runs",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "employee_id",
+              "fieldValue": "={{ $('HTML - Generate Payslip').item.json.employee_id }}"
+            },
+            {
+              "fieldId": "month_year",
+              "fieldValue": "={{ $('HTML - Generate Payslip').item.json.month_year }}"
+            },
+            {
+              "fieldId": "net_salary",
+              "fieldValue": "={{ $('HTML - Generate Payslip').item.json.net_salary }}"
+            },
+            {
+              "fieldId": "gross_salary",
+              "fieldValue": "={{ $('HTML - Generate Payslip').item.json.gross_salary }}"
+            },
+            {
+              "fieldId": "total_deductions",
+              "fieldValue": "={{ $('HTML - Generate Payslip').item.json.total_deductions }}"
+            },
+            {
+              "fieldId": "payslip_date",
+              "fieldValue": "={{ $('HTML - Generate Payslip').item.json.payslip_date }}"
+            },
+            {
+              "fieldId": "pdf_url",
+              "fieldValue": "={{ $json.webViewLink }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2560,
+        48
+      ],
+      "id": "26bffa59-859d-4458-9d19-1dc73a04362d",
+      "name": "SUPA - Save Payroll Record",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "=",
+        "recipientPhoneNumber": "=",
+        "textBody": "=Salary slip for {{ $('HTML - Generate Payslip').item.json.employee_name }} has been processed.\nEmployee ID: {{ $('HTML - Generate Payslip').item.json.employee_id }}\nMonth: {{ $('HTML - Generate Payslip').item.json.month_year }}\nNet Salary: PKR {{ $('HTML - Generate Payslip').item.json.net_salary }}\nPlease check your email for the detailed payslip. — FinAuto Finance System",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        2784,
+        48
+      ],
+      "id": "c44afeee-4b96-43b5-bd4b-92f7da58794d",
+      "name": "WA - Send Notification",
+      "webhookId": "0548760b-4590-408d-adad-8692bd552550",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "whatsAppApi": {
+          "id": "oigk7TVaI864JkjR",
+          "name": "WhatsApp account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3008,
+        48
+      ],
+      "id": "68d1cd78-026c-4f67-bb2f-fc8f52864411",
+      "name": "Wait",
+      "webhookId": "d310bd7e-866d-4b99-be30-42535c3efdac"
+    },
+    {
+      "parameters": {
+        "batchSize": 10,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        3232,
+        192
+      ],
+      "id": "cb98fcbe-768e-42ee-af3b-8d65c4f2c43a",
+      "name": "LOOP - Continue to Next Employee"
+    },
+    {
+      "parameters": {
+        "name": "={{ $('HTML - Generate Payslip').item.json.employee_id }}_{{ $('HTML - Generate Payslip').item.json.month_year }}.pdf",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "=1D8fxu6bs_k7kFb1BNz5pLe0Rg16wlay8",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "0262f89a-46eb-49df-afc0-ca24d4b0bdec",
+      "name": "Upload to Google drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2336,
+        144
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "PbEEBo4PvHm7BUhW",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "failed_attempts",
+        "limit": 1,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "employee_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.id }}"
+            }
+          ]
+        }
+      },
+      "id": "975b34ba-9bed-434c-89c2-5cf2ff368076",
+      "name": "Check Failed Attempts",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        896,
+        640
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "success",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "2",
+              "name": "message",
+              "value": "Account is locked due to multiple failed login attempts. Please wait 15 minutes before trying again.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a93adc50-f1b2-447b-a8b7-c8379c656909",
+      "name": "Format Locked Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2464,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "employees",
+        "limit": 1,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "employee_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Login Webhook').item.json.body.id }}"
+            },
+            {
+              "keyName": "password",
+              "condition": "eq",
+              "keyValue": "={{ $('Login Webhook').item.json.body.password }}"
+            }
+          ]
+        }
+      },
+      "id": "e3418742-cc3c-4bf4-9a3f-d82a25363edf",
+      "name": "Verify Credentials",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        736
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check if credentials were found\nconst items = $input.all();\nconst loginSuccess = items.length > 0 && items[0].json.employee_id;\n\nif (loginSuccess) {\n  // Remove password field for security\n  const employee = { ...items[0].json };\n  delete employee.password;\n  \n  return [{\n    json: {\n      loginSuccess: true,\n      employee: employee\n    }\n  }];\n} else {\n  return [{\n    json: {\n      loginSuccess: false\n    }\n  }];\n}"
+      },
+      "id": "55499629-e7c6-41c2-937c-2ff8888f9a4b",
+      "name": "Validate and Clean",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "failed_attempts",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "employee_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Login Webhook').item.json.body.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "attempts",
+              "fieldValue": "0"
+            }
+          ]
+        }
+      },
+      "id": "5e21771a-c6cb-4909-a835-b7d3052715ae",
+      "name": "Reset Failed Attempts",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2016,
+        640
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "failed_attempts",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "employee_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Login Webhook').item.json.body.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "attempts",
+              "fieldValue": "={{ $(\"Check Failed Attempts\").item.json.failed_count + 1 }}"
+            },
+            {
+              "fieldId": "updated_at",
+              "fieldValue": "={{ $now.toISO() }}"
+            }
+          ]
+        }
+      },
+      "id": "c470a0c5-d7b8-421f-b3f0-3a244be388c1",
+      "name": "Increment Failed Attempts",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        832
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "success",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "2",
+              "name": "message",
+              "value": "Invalid employee ID or password",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6c6151b8-44c3-4a80-ae2e-18f65fa8f281",
+      "name": "Format Failed Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2464,
+        832
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "c6ffce8b-4ee6-4652-8829-bbcc42ffdd62",
+      "name": "Respond To Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2688,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst emp = $(\"Validate and Clean\").first().json.employee;\n\n// Data is already summarized in one row\nconst row = items[0].json;\n\nreturn [{\n  json: {\n    success: true,\n    employee: emp,\n    attendance: {\n      summary: {\n        P: row.present_days || 0,\n        A: row.absent_days || 0,\n        L: row.leaves || 0\n      },\n      calendar: [] // empty since no daily breakdown available\n    }\n  }\n}];"
+      },
+      "id": "d119b771-bf1d-4a7b-8da1-de55aa710ee2",
+      "name": "Format Attendance1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2464,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "132d6888-60e0-4e5f-b358-e618bee1073f",
+              "leftValue": "={{ $json.locked_until }}",
+              "rightValue": 4,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "0398add0-c13e-44ae-8551-3d403f70ac3d",
+              "leftValue": "={{ $now.diff(DateTime.fromISO($json.last_failed_at), \"minutes\").minutes }}",
+              "rightValue": 15,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        640
+      ],
+      "id": "1c8fafb6-75cf-4346-a4cb-71d58a811989",
+      "name": "IF - Account Locked1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ba63d257-1991-48c9-9416-f7ec3df33040",
+              "leftValue": "={{ $json.loginSuccess }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1792,
+        736
+      ],
+      "id": "873198ad-841d-4d77-9ba6-f24c17568e2b",
+      "name": "loginSuccess"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "attendance",
+        "returnAll": true,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "employee_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Login Webhook').item.json.body.id }}"
+            },
+            {
+              "keyName": "month_year",
+              "condition": "eq",
+              "keyValue": "={{ $now.toFormat(\"MM-yyyy\") }}"
+            }
+          ]
+        }
+      },
+      "id": "088f460a-0e96-4cbb-8c63-14943aeefc6c",
+      "name": "Fetch Attendance1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        640
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "f99af721-d37a-47f0-b5f8-9cccd6a1cd46",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "7bd17d5d-a4d2-4067-869e-9e3312617180",
+      "name": "Login Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        672,
+        640
+      ],
+      "webhookId": "f99af721-d37a-47f0-b5f8-9cccd6a1cd46",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "li3acGOjCirZBaAF",
+          "name": "Webhook Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "f186d62f-06e8-49f7-9991-bf8830d92099",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1c2e4e52-9947-43d8-95b6-d01a74dccf7e",
+      "name": "Receive Login Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        4208,
+        -240
+      ],
+      "webhookId": "f186d62f-06e8-49f7-9991-bf8830d92099",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "li3acGOjCirZBaAF",
+          "name": "Webhook Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "users",
+        "limit": 1,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.id }}"
+            },
+            {
+              "keyName": "password",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.password }}"
+            }
+          ]
+        }
+      },
+      "id": "2788e1c0-ca36-4b43-96da-871fe55f425f",
+      "name": "Query Users Table",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4432,
+        -240
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Q0pKgjyfgEoY3Ulq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "2",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "full_name",
+              "value": "={{ $json.full_name }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "role",
+              "value": "={{ $json.role }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f6d8cf09-8b8b-47a0-ba81-0b667723e22b",
+      "name": "Format Success Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4880,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.reply }}",
+        "options": {}
+      },
+      "id": "4762ccf1-c250-4c7d-a22a-38c726a2b6ae",
+      "name": "Send Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        5520,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "success",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "2",
+              "name": "error",
+              "value": "Invalid credentials",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d37374eb-095d-4d49-ad37-1ac9b11be0fd",
+      "name": "Format Error Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4880,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a84a944e-7e94-43b5-976c-e8a870ac5086",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4624,
+        -272
+      ],
+      "id": "60d6d113-771a-44b6-afcc-952800b58774",
+      "name": "Check If User Found1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e340b1c4-b956-4318-b2ef-0f5974ca6865",
+              "name": "reply",
+              "value": "={   \"status\": \"success\",   \"message\": \"Login successful\",   \"data\": {     \"id\": \"{{ $json.id }}\",     \"full_name\": \"{{ $json.full_name }}\",     \"role\": \"{{ $json.role }}\"   } }",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5088,
+        -336
+      ],
+      "id": "1d9116ae-419b-415a-a314-e044f5bc8a61",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "58faae74-467b-43e3-a813-f126a140b6bd",
+              "name": "reply",
+              "value": "{   \"status\": \"error\",   \"message\": \"Invalid ID or Password\" }",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5088,
+        -144
+      ],
+      "id": "392239f9-bd6f-4bba-a6b4-4703746fec1a",
+      "name": "Edit Fields7"
+    },
+    {
+      "parameters": {
+        "content": "Login Workflow for Admin",
+        "height": 432,
+        "width": 1872
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3936,
+        -400
+      ],
+      "typeVersion": 1,
+      "id": "dfdc26c0-de7e-4e33-b866-42c67f646461",
+      "name": "Sticky Note6"
+    }
+  ],
+  "pinData": {
+    "Chatbot webhook": [
+      {
+        "json": {
+          "name": "Profit/loss report of Imran Saleem"
+        }
+      }
+    ],
+    "Merge OCR Results": [
+      {
+        "json": {
+          "vendor_name": "Beta Office Supplies",
+          "vendor_email": "billing@betaoffice.com",
+          "invoice_number": "PO-78002",
+          "invoice_date": "2025-08-15",
+          "due_date": "2025-08-30",
+          "item_description": "Office Tables",
+          "quantity": 15,
+          "unit_price": 4000,
+          "subtotal": 60000,
+          "tax": 0,
+          "total_amount": 60000,
+          "payment_method": "Bank Transfer",
+          "currency": "PKR"
+        }
+      }
+    ],
+    "Receive Login Request": [
+      {
+        "json": {
+          "body": {
+            "id": "ADM004",
+            "password": "Pass@ADM004"
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Intent Detector Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Intent Detector Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Summary Generator Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intent Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Intent Detector Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intent Detector Agent": {
+      "main": [
+        [
+          {
+            "node": "Route by Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Intent": {
+      "main": [
+        [
+          {
+            "node": "Query Salary Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Query Invoice Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Query Profit/Loss Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Query Attendance Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Help Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summary Generator Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Chatbot webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Help Message": {
+      "main": [
+        []
+      ]
+    },
+    "Google Gemini Model - Intent": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Intent Detector Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Model - Summary": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Summary Generator Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Salary Data": {
+      "main": [
+        [
+          {
+            "node": "Add Session to Salary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Invoice Data": {
+      "main": [
+        [
+          {
+            "node": "Add Session to Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Profit/Loss Data": {
+      "main": [
+        [
+          {
+            "node": "Add Session to Profit/Loss",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Attendance Data": {
+      "main": [
+        [
+          {
+            "node": "Add Session to Attendance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Session to Salary": {
+      "main": [
+        [
+          {
+            "node": "FORMAT - Salary Report Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Session to Invoice": {
+      "main": [
+        [
+          {
+            "node": "FORMAT - Invoice Report Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Session to Profit/Loss": {
+      "main": [
+        [
+          {
+            "node": "FORMAT - Profit Loss Report Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Session to Attendance": {
+      "main": [
+        [
+          {
+            "node": "CALC - Count Attendance P/A/L Values",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sales Order Webhook": {
+      "main": [
+        [
+          {
+            "node": "PARSE - Extract Body from Sales Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Invoice Number": {
+      "main": [
+        [
+          {
+            "node": "Calculate Invoice Totals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Invoice Totals": {
+      "main": [
+        [
+          {
+            "node": "Generate HTML Invoice",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Invoice Data with PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate HTML Invoice": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Merge Invoice Data with PDF",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Invoice Data with PDF": {
+      "main": [
+        [
+          {
+            "node": "Save Invoice to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Invoice to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invoice Upload Webhook": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check File Type": {
+      "main": [
+        [
+          {
+            "node": "Extract Text from PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Extract Text from PDF": {
+      "main": [
+        [
+          {
+            "node": "Merge OCR Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge OCR Results": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Extract Invoice Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Extract Invoice Data": {
+      "main": [
+        [
+          {
+            "node": "Insert Invoice to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Invoice to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Invoice Items to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Merge Binary with Extracted Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Binary with Extracted Data": {
+      "main": [
+        [
+          {
+            "node": "Upload Invoice to Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Invoice to Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Prepare WhatsApp Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare WhatsApp Message": {
+      "main": [
+        [
+          {
+            "node": "Respond to Invoice Upload Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Payment Reminder Check": {
+      "main": [
+        [
+          {
+            "node": "Query Upcoming Due Invoices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Upcoming Due Invoices": {
+      "main": [
+        [
+          {
+            "node": "Check If Invoices Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Invoices Found": {
+      "main": [
+        [
+          {
+            "node": "Prepare Payment Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Payment Reminder": {
+      "main": [
+        [
+          {
+            "node": "Send Payment Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Extract Invoice Data",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Extract Invoice Data",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "PREPARE - Invoice Item Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LOOP - Items Processed (End)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration2": {
+      "main": [
+        [
+          {
+            "node": "Generate Invoice Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Sales Order Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration3": {
+      "main": [
+        [
+          {
+            "node": "Check File Type",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Binary with Extracted Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge OCR Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Chatbot webhook": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FORMAT - Salary Report Text": {
+      "main": [
+        [
+          {
+            "node": "Summary Generator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FORMAT - Invoice Report Text": {
+      "main": [
+        [
+          {
+            "node": "Summary Generator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FORMAT - Profit Loss Report Text": {
+      "main": [
+        [
+          {
+            "node": "Summary Generator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FORMAT - Attendance Summary Text": {
+      "main": [
+        [
+          {
+            "node": "Summary Generator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CALC - Count Attendance P/A/L Values": {
+      "main": [
+        [
+          {
+            "node": "FORMAT - Attendance Summary Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PARSE - Extract Body from Sales Request": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LOOP - Items Processed (End)": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PREPARE - Invoice Item Fields": {
+      "main": [
+        [
+          {
+            "node": "Insert Invoice Items to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EXTRACT - Order ID from Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SUPA - Get Order Details by ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SUPA - Get Order Details by ID": {
+      "main": [
+        [
+          {
+            "node": "IF - Check Order Record Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Check Order Record Found": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "VALIDATE - Order Status Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VALIDATE - Order Status Check": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Invoice Upload Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Delivery Tracking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Delivery Tracking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Delivery Tracking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Delivery Tracking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Respond to Delivery Tracking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Chatbot webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Respond to Sales Order Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send Invoice via Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Respond to Delivery Tracking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delivery Tracking": {
+      "main": [
+        [
+          {
+            "node": "EXTRACT - Order ID from Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Upload to Google Drive",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "PDF - Convert via PDFShift": {
+      "main": [
+        [
+          {
+            "node": "EMAIL - Send Payslip",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Upload to Google drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SCHED - Monthly Payroll Run Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "CD - Calculate Month/Year",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CD - Calculate Month/Year": {
+      "main": [
+        [
+          {
+            "node": "SUPA - Get All Employees",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SUPA - Get All Employees": {
+      "main": [
+        [
+          {
+            "node": "LOOP - Process Each Employee",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LOOP - Process Each Employee": {
+      "main": [
+        [],
+        [
+          {
+            "node": "SUPA - Get Employee Attendance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SUPA - Get Employee Attendance": {
+      "main": [
+        [
+          {
+            "node": "CD - Calculate Net Salary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CD - Calculate Net Salary": {
+      "main": [
+        [
+          {
+            "node": "HTML - Generate Payslip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML - Generate Payslip": {
+      "main": [
+        [
+          {
+            "node": "SUPA - Check Existing Payroll",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SUPA - Check Existing Payroll": {
+      "main": [
+        [
+          {
+            "node": "IF - Payroll Already Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Payroll Already Exists": {
+      "main": [
+        [
+          {
+            "node": "PDF - Convert via PDFShift",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LOOP - Continue to Next Employee",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EMAIL - Send Payslip": {
+      "main": [
+        []
+      ]
+    },
+    "SUPA - Save Payroll Record": {
+      "main": [
+        [
+          {
+            "node": "WA - Send Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WA - Send Notification": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "LOOP - Continue to Next Employee",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LOOP - Continue to Next Employee": {
+      "main": [
+        [],
+        [
+          {
+            "node": "LOOP - Process Each Employee",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Google drive": {
+      "main": [
+        [
+          {
+            "node": "SUPA - Save Payroll Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Locked Error": {
+      "main": [
+        [
+          {
+            "node": "Respond To Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Credentials": {
+      "main": [
+        [
+          {
+            "node": "Validate and Clean",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reset Failed Attempts": {
+      "main": [
+        [
+          {
+            "node": "Fetch Attendance1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Increment Failed Attempts": {
+      "main": [
+        [
+          {
+            "node": "Format Failed Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Failed Error": {
+      "main": [
+        [
+          {
+            "node": "Respond To Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Attendance1": {
+      "main": [
+        [
+          {
+            "node": "Respond To Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Failed Attempts": {
+      "main": [
+        [
+          {
+            "node": "IF - Account Locked1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Account Locked1": {
+      "main": [
+        [
+          {
+            "node": "Format Locked Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Verify Credentials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate and Clean": {
+      "main": [
+        [
+          {
+            "node": "loginSuccess",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "loginSuccess": {
+      "main": [
+        [
+          {
+            "node": "Reset Failed Attempts",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Increment Failed Attempts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Attendance1": {
+      "main": [
+        [
+          {
+            "node": "Format Attendance1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Login Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Failed Attempts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Login Request": {
+      "main": [
+        [
+          {
+            "node": "Query Users Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Success Response": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Error Response": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Users Table": {
+      "main": [
+        [
+          {
+            "node": "Check If User Found1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If User Found1": {
+      "main": [
+        [
+          {
+            "node": "Format Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields7": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "Kc3CVccrKfHVnyvF"
+  },
+  "versionId": "92ee4f71-3f57-4fe0-9f9f-34623572eeb3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "319ef7a6b4739b3f8ef1eed87dd438f42ff3d851f24b0f6e525a00e6c608913b"
+  },
+  "id": "AfiVdUqjq5GcUTrL",
+  "tags": []
+}
