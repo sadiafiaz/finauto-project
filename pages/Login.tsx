@@ -92,7 +92,7 @@ export const Login: React.FC = () => {
                                 autoComplete="username"
                                 value={id}
                                 onChange={(e) => setId(e.target.value)}
-                                placeholder="e.g. EMP001"
+                                placeholder="e.g. ADM001 - ADM005"
                                 className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                                 disabled={isSubmitting}
                             />
