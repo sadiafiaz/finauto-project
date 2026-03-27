@@ -32,12 +32,7 @@ export const Dashboard: React.FC = () => {
           <p className="text-slate-500">Welcome back! Here's what's happening today.</p>
         </div>
         <div className="flex gap-3">
-           <button 
-            onClick={handleExport}
-            className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all"
-           >
-            Export Report
-           </button>
+      
            <button 
             onClick={() => navigate('/invoices')}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm transition-all"
